@@ -1,0 +1,38 @@
+name: hexlet-check
+
+# Проверки запускаются при любом push в репозиторий
+on: [push]
+
+jobs:
+  build:
+    # Запуск на актуальной версии дистрибутива Ubuntu
+    runs-on: ubuntu-latest
+
+    strategy:
+      # Проверка будет проходить на стабильной версии Node.js (например, 20)
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      # Шаг 1: Скачивание исходного кода проекта из репозитория
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Шаг 2: Установка и настройка окружения Node.js
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      # Шаг 3: Установка зависимостей проекта через Makefile
+      - name: Install dependencies
+        run: make install
+
+      # Шаг 4: Запуск проверки линтером через Makefile
+      - name: Run linter
+        run: make lint
+
+      # Шаг 5: Запуск тестов приложения через Makefile
+      - name: Run tests
+        run: make test
