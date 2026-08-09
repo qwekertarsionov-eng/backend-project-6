@@ -1,4 +1,4 @@
-name: hexlet-check
+name: CI
 
 # Проверки запускаются при любом push в репозиторий
 on: [push]
