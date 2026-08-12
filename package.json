@@ -1,13 +1,14 @@
 {
-  "name": "task-manager",
+  "name": "@hexlet/code",
   "version": "1.0.0",
   "description": "Hexlet task manager project",
-  "main": "index.js",
+  "main": "server/plugin.js",
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
   },
   "scripts": {
+    "start": "node server/bin/server.js",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [],
@@ -17,5 +18,9 @@
     "@eslint/js": "^10.0.1",
     "eslint": "^10.8.1",
     "globals": "^17.9.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "fastify": "^5.11.3"
   }
 }
