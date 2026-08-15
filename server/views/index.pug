@@ -1,0 +1,7 @@
+extends layouts/application.pug
+
+block content
+  div(class="p-5 mb-4 bg-white rounded-3 border shadow-sm")
+    div(class="container-fluid py-5 text-center")
+      h1(class="display-5 fw-bold text-dark")= t('views.index.hello')
+      p(class="col-md-8 mx-auto fs-4 text-muted")= t('views.index.description')

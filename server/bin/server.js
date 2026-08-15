@@ -1,16 +1,17 @@
 import dotenv from 'dotenv';
-import init from '../plugin.js';
+import fastify from 'fastify';
+import initApp from '../plugin.js';
 
-// Инициализируем dotenv для чтения файла .env (локально)
 dotenv.config();
 
 const startServer = async () => {
-  // Включаем логирование по методологии 12-Factor App
-  const app = await init({ logger: true });
+  // Создаем инстанс Fastify здесь
+  const app = fastify({ logger: true });
   
-  // Render автоматически передает переменную PORT
+  // Передаем его в плагин инициализации
+  await initApp(app);
+  
   const port = process.env.PORT || 3000;
-  // На продакшене обязательно слушать '0.0.0.0'
   const host = '0.0.0.0';
 
   try {
