@@ -1,0 +1,13 @@
+extends ../layouts/application.pug
+
+block content
+  div(class="container-fluid flex-grow-1")
+    h1(class="my-4")= t('views.layouts.application.login')
+    form(action="/session" method="POST")
+      div(class="mb-3")
+        label(for="data_email")= t('views.users.email')
+        input(id="data_email" name="data[email]" class="form-control" type="email")
+      div(class="mb-3")
+        label(for="data_password")= t('views.users.password')
+        input(id="data_password" name="data[password]" class="form-control" type="password")
+      input(class="btn btn-primary" type="submit" value=t('views.layouts.application.login'))

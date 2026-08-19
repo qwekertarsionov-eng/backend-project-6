@@ -1,0 +1,33 @@
+extends ../layouts/application.pug
+
+block content
+  div(class="container-fluid flex-grow-1")
+    h1(class="my-4")= t('views.layouts.application.register')
+    
+    if errors
+      div(class="alert alert-danger")
+        ul
+          each error in errors
+            li= `${error.message}`
+
+    form(action="/users" method="POST")
+      // ... поля формы остаются прежними
+
+
+block content
+  div(class="container-fluid flex-grow-1")
+    h1(class="my-4")= t('views.layouts.application.register')
+    form(action="/users" method="POST")
+      div(class="mb-3")
+        label(for="data_firstName")= t('views.users.firstName')
+        input(id="data_firstName" name="data[firstName]" class="form-control" type="text" value=(user ? user.firstName : ''))
+      div(class="mb-3")
+        label(for="data_lastName")= t('views.users.lastName')
+        input(id="data_lastName" name="data[lastName]" class="form-control" type="text" value=(user ? user.lastName : ''))
+      div(class="mb-3")
+        label(for="data_email")= t('views.users.email')
+        input(id="data_email" name="data[email]" class="form-control" type="email" value=(user ? user.email : ''))
+      div(class="mb-3")
+        label(for="data_password")= t('views.users.password')
+        input(id="data_password" name="data[password]" class="form-control" type="password")
+      input(class="btn btn-primary" type="submit" value=t('views.users.new.submit'))

@@ -1,9 +1,8 @@
 doctype html
 html(lang="en" class="h-100")
   head
-    title = t('appName')
+    title= t('appName')
     meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
-    // Подключаем Bootstrap через CDN, как требует ТЗ
     link(rel="stylesheet" href="https://jsdelivr.net")
   body(class="d-flex flex-column h-100 bg-light")
     header
@@ -13,21 +12,35 @@ html(lang="en" class="h-100")
           button(class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent")
             span(class="navbar-toggler-icon")
           div(class="collapse navbar-collapse" id="navbarContent")
-            ul(class="navbar-fluid navbar-nav me-auto mb-2 mb-lg-0")
+            ul(class="navbar-nav me-auto mb-2 mb-lg-0")
               li(class="nav-item")
                 a(class="nav-link" href="/users")= t('views.layouts.application.users')
             ul(class="navbar-nav ms-auto mb-2 mb-lg-0")
+              if isAuthenticated
+                li(class="nav-item")
+                  // Кнопка выхода по ТЗ должна слать DELETE /session. 
+                  // Для простоты пока сделаем её обычной ссылкой, настроив роут на GET или POST,
+                  // либо сделаем через мини-форму:
+                  form(action="/session" method="POST" class="d-inline")
+                    input(type="hidden" name="_method" value="DELETE")
+                    input(class="nav-link btn btn-link text-white-50" type="submit" value=t('views.layouts.application.logout'))
+              else
               li(class="nav-item")
-                a(class="nav-link btn btn-outline-light me-2 px-3 text-white" href="/login")= t('views.layouts.application.login')
+                a(class="nav-link btn btn-outline-light me-2 px-3 text-white" href="/session/new")= t('views.layouts.application.login')
               li(class="nav-item")
-                a(class="nav-link btn btn-primary px-3 text-white" href="/register")= t('views.layouts.application.register')
+                a(class="nav-link btn btn-primary px-3 text-white" href="/users/new")= t('views.layouts.application.register')
 
     main(class="flex-shrink-0 my-5")
       div(class="container")
+        if flash && Object.keys(flash).length > 0
+          each messages, type in flash
+            each message in messages
+              div(class=`alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show` role="alert")
+                = message
+                button(class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close")
         block content
 
     footer(class="footer mt-auto py-3 bg-white border-top")
       div(class="container text-center")
         span(class="text-muted") © 2026 Hexlet Task Manager
-    
     script(src="https://jsdelivr.net")

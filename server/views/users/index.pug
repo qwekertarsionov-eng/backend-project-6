@@ -1,0 +1,31 @@
+extends ../layouts/application.pug
+
+block content
+  div(class="container-fluid flex-grow-1")
+    h1(class="my-4")= t('views.layouts.application.users')
+    
+    table(class="table table-striped table-hover mt-3 shadow-sm bg-white rounded")
+      thead(class="table-dark")
+        tr
+          th= t('views.users.id')
+          th= t('views.users.firstName')
+          th= t('views.users.lastName')
+          th= t('views.users.email')
+          th= t('views.users.createdAt')
+          th= t('views.users.actions')
+      tbody
+        if users && users.length > 0
+          each user in users
+            tr
+              td= user.id
+              td= user.firstName
+              td= user.lastName
+              td= user.email
+              td= new Date(user.createdAt).toLocaleString()
+              td
+                // Убрали проблемную кнопку +buttonTo, оставив простую ссылку для редактирования
+                div(class="d-flex")
+                  a(class="btn btn-primary btn-sm me-2" href=`/users/${user.id}/edit`)= t('views.users.edit.submit')
+        else
+          tr
+            td(colspan="6" class="text-center text-muted py-4") No users registered yet.
