@@ -1,0 +1,11 @@
+extends ../layouts/application.pug
+
+block content
+  div(class="container-fluid flex-grow-1")
+    h1(class="my-4")= t('views.statuses.edit.title')
+    form(action=`/statuses/${status.id}` method="POST")
+      input(type="hidden" name="_method" value="PATCH")
+      div(class="mb-3")
+        label(for="data_name")= t('views.statuses.name')
+        input(id="data_name" name="data[name]" class="form-control" type="text" value=(status ? status.name : ''))
+      input(class="btn btn-primary" type="submit" value=t('views.statuses.edit.submit'))

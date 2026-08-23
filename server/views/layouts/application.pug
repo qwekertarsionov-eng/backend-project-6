@@ -12,9 +12,13 @@ html(lang="en" class="h-100")
           button(class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent")
             span(class="navbar-toggler-icon")
           div(class="collapse navbar-collapse" id="navbarContent")
+            //- Левая часть меню (Ссылки на сущности)
             ul(class="navbar-nav me-auto mb-2 mb-lg-0")
               li(class="nav-item")
                 a(class="nav-link" href="/users")= t('views.layouts.application.users')
+              if isAuthenticated
+                li(class="nav-item")
+                  a(class="nav-link" href="/statuses")= t('views.layouts.application.statuses')
             ul(class="navbar-nav ms-auto mb-2 mb-lg-0")
               if isAuthenticated
                 li(class="nav-item")
