@@ -16,6 +16,7 @@ import knexConfig from '../knexfile.js';
 import User from './models/User.js';
 import en from './locales/en.js';
 import qs from 'qs';
+import TaskStatus from './models/TaskStatus.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,13 +24,13 @@ const __dirname = path.dirname(__filename);
 // Создаем инстанс аутентификатора Passport
 const fastifyPassport = new Authenticator();
 
-export default async (app, options = {}) => {
+export default async (app) => {
   // 1. Настройка базы данных и ORM
   const mode = process.env.NODE_ENV || 'development';
   const knex = Knex(knexConfig[mode]);
   Model.knex(knex);
 
-  app.decorate('models', { User });
+  app.decorate('models', { User, TaskStatus });
 
   app.addHook('onClose', async () => {
     await knex.destroy();
@@ -39,6 +40,12 @@ export default async (app, options = {}) => {
 // Настраиваем парсер форм так, чтобы он понимал структуры вида data[firstName]
   await app.register(fastifyFormbody, {
   parser: (str) => qs.parse(str),
+  });
+    // Встроенная замена плагина: перехватывает поле _method из HTML-форм
+  app.addHook('onRequest', async (request) => {
+    if (request.body && typeof request.body === 'object' && '_method' in request.body) {
+      request.routeOptions.method = request.body._method.toUpperCase();
+    }
   });
 
   // 3. Настройка защищенных сессий (куки)
@@ -129,7 +136,72 @@ export default async (app, options = {}) => {
     const users = await User.query();
     return reply.view('users/index', { users });
   });
+  // 1. GET /statuses - список всех статусов
+  app.get('/statuses', async (request, reply) => {
+    if (!request.isAuthenticated()) {
+      request.flash('error', 'Access denied. Please log in.');
+      return reply.redirect('/session/new');
+    }
+    const statuses = await TaskStatus.query();
+    return reply.view('statuses/index', { statuses });
+  });
 
+  // 2. GET /statuses/new
+  app.get('/statuses/new', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    return reply.view('statuses/new', { status: {} });
+  });
+
+  // 3. POST /statuses
+  app.post('/statuses', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    const statusData = request.body.data;
+    try {
+      await TaskStatus.query().insert(statusData);
+      request.flash('success', app.i18n.t('flash.statuses.create.success'));
+      return reply.redirect('/statuses');
+    } catch (err) {
+      request.flash('error', app.i18n.t('flash.statuses.create.error'));
+      return reply.view('statuses/new', { status: statusData, errors: err.data });
+    }
+  });
+
+  // 4. GET /statuses/:id/edit
+  app.get('/statuses/:id/edit', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    const { id } = request.params;
+    const status = await TaskStatus.query().findById(id);
+    return reply.view('statuses/edit', { status });
+  });
+
+  // 5. PATCH /statuses/:id
+  app.patch('/statuses/:id', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    const { id } = request.params;
+    const statusData = request.body.data;
+    try {
+      const status = await TaskStatus.query().findById(id);
+      await status.$query().patch(statusData);
+      request.flash('success', app.i18n.t('flash.statuses.update.success'));
+      return reply.redirect('/statuses');
+    } catch (err) {
+      request.flash('error', app.i18n.t('flash.statuses.update.error'));
+      return reply.view('statuses/edit', { status: { id, ...statusData }, errors: err.data });
+    }
+  });
+
+  // 6. DELETE /statuses/:id
+  app.delete('/statuses/:id', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    const { id } = request.params;
+    try {
+      await TaskStatus.query().deleteById(id);
+      request.flash('success', app.i18n.t('flash.statuses.delete.success'));
+    } catch {
+      request.flash('error', app.i18n.t('flash.statuses.delete.error'));
+    }
+    return reply.redirect('/statuses');
+  });
   // Страница регистрации
   app.get('/users/new', async (request, reply) => reply.view('users/new', { user: {} }));
 
