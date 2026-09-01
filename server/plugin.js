@@ -17,6 +17,7 @@ import User from './models/User.js';
 import en from './locales/en.js';
 import qs from 'qs';
 import TaskStatus from './models/TaskStatus.js';
+import Task from './models/Task.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,7 +31,7 @@ export default async (app) => {
   const knex = Knex(knexConfig[mode]);
   Model.knex(knex);
 
-  app.decorate('models', { User, TaskStatus });
+  app.decorate('models', { User, TaskStatus, Task });
 
   app.addHook('onClose', async () => {
     await knex.destroy();
@@ -41,12 +42,7 @@ export default async (app) => {
   await app.register(fastifyFormbody, {
   parser: (str) => qs.parse(str),
   });
-    // Встроенная замена плагина: перехватывает поле _method из HTML-форм
-  app.addHook('onRequest', async (request) => {
-    if (request.body && typeof request.body === 'object' && '_method' in request.body) {
-      request.routeOptions.method = request.body._method.toUpperCase();
-    }
-  });
+
 
   // 3. Настройка защищенных сессий (куки)
   // По ТЗ Хекслета секретный ключ передается через переменные окружения (.env)
@@ -146,6 +142,7 @@ export default async (app) => {
     return reply.view('statuses/index', { statuses });
   });
 
+
   // 2. GET /statuses/new
   app.get('/statuses/new', async (request, reply) => {
     if (!request.isAuthenticated()) return reply.redirect('/session/new');
@@ -202,6 +199,122 @@ export default async (app) => {
     }
     return reply.redirect('/statuses');
   });
+    // 1. GET /tasks - Список всех задач
+  app.get('/tasks', async (request, reply) => {
+    const tasks = await Task.query().withGraphFetched('[status, creator, executor]');
+    return reply.view('tasks/index', { tasks });
+  });
+
+  // 2. GET /tasks/new - Форма создания задачи
+  app.get('/tasks/new', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    const statuses = await app.models.TaskStatus.query();
+    const users = await app.models.User.query();
+    return reply.view('tasks/new', { task: {}, statuses, users });
+  });
+
+  // 3. POST /tasks - Создание новой задачи
+  app.post('/tasks', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    const taskData = {
+      ...request.body.data,
+      creatorId: request.user.id,
+      statusId: Number(request.body.data.statusId),
+      executorId: request.body.data.executorId ? Number(request.body.data.executorId) : null,
+    };
+    try {
+      await Task.query().insert(taskData);
+      request.flash('success', app.i18n.t('flash.tasks.create.success'));
+      return reply.redirect('/tasks');
+    } catch (err) {
+      const statuses = await app.models.TaskStatus.query();
+      const users = await app.models.User.query();
+      request.flash('error', app.i18n.t('flash.tasks.create.error'));
+      return reply.view('tasks/new', { task: taskData, statuses, users, errors: err.data });
+    }
+  });
+
+  // 4. GET /tasks/:id - Просмотр одной задачи
+  app.get('/tasks/:id', async (request, reply) => {
+    const { id } = request.params;
+    const task = await Task.query().findById(id).withGraphFetched('[status, creator, executor]');
+    return reply.view('tasks/show', { task });
+  });
+
+  // 5. GET /tasks/:id/edit - Страница редактирования задачи
+  app.get('/tasks/:id/edit', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    const { id } = request.params;
+    const task = await Task.query().findById(id);
+    const statuses = await app.models.TaskStatus.query();
+    const users = await app.models.User.query();
+    return reply.view('tasks/edit', { task, statuses, users });
+  });
+
+  // 6. PATCH /tasks/:id - Обновление задачи
+  app.patch('/tasks/:id', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    const { id } = request.params;
+    const updateData = {
+      ...request.body.data,
+      statusId: Number(request.body.data.statusId),
+      executorId: request.body.data.executorId ? Number(request.body.data.executorId) : null,
+    };
+    try {
+      const task = await Task.query().findById(id);
+      await task.$query().patch(updateData);
+      request.flash('success', app.i18n.t('flash.tasks.update.success'));
+      return reply.redirect('/tasks');
+    } catch (err) {
+      const statuses = await app.models.TaskStatus.query();
+      const users = await app.models.User.query();
+      return reply.view('tasks/edit', { task: { id, ...updateData }, statuses, users, errors: err.data });
+    }
+  });
+
+  // 7. DELETE /tasks/:id - Удаление задачи
+  app.delete('/tasks/:id', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    const { id } = request.params;
+    const task = await Task.query().findById(id);
+
+    if (task.creatorId !== request.user.id) {
+      request.flash('error', app.i18n.t('flash.tasks.delete.error'));
+      return reply.redirect('/tasks');
+    }
+
+    await Task.query().deleteById(id);
+    request.flash('success', app.i18n.t('flash.tasks.delete.success'));
+    return reply.redirect('/tasks');
+  });
+  // Исправленный роут-заглушка для имитации PATCH и DELETE
+  app.post('/tasks/:id', async (request, reply) => {
+    const method = request.body?._method?.toUpperCase();
+    
+    if (method === 'DELETE') {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/tasks/${request.params.id}`,
+        // Передаем куки авторизации, чтобы система знала, кто удаляет задачу
+        cookies: request.cookies, 
+      });
+      return reply.code(res.statusCode).send(res.body);
+    }
+    
+    if (method === 'PATCH') {
+      const res = await app.inject({
+        method: 'PATCH',
+        url: `/tasks/${request.params.id}`,
+        payload: request.body, // Для PATCH передаем измененные данные формы
+        cookies: request.cookies,
+      });
+      return reply.code(res.statusCode).send(res.body);
+    }
+
+    return reply.code(404).send({ error: 'Route not found' });
+  });
+
+
   // Страница регистрации
   app.get('/users/new', async (request, reply) => reply.view('users/new', { user: {} }));
 

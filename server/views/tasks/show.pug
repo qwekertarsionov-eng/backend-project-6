@@ -1,0 +1,27 @@
+extends ../layouts/application.pug
+
+block content
+  div(class="container-fluid flex-grow-1")
+    h1(class="display-4 mb-4")= task.name
+    
+    div(class="row")
+      div(class="col-md-8")
+        div(class="card shadow-sm mb-4 bg-white rounded")
+          div(class="card-body")
+            h5(class="card-title text-muted")= t('views.tasks.description')
+            p(class="card-text fs-5")= task.description || 'No description provided.'
+            
+      div(class="col-md-4")
+        div(class="card shadow-sm bg-white rounded")
+          div(class="card-body")
+            div(class="mb-3")
+              span(class="text-muted d-block")= t('views.tasks.status')
+              span(class="badge bg-info text-dark fs-6")= task.status ? task.status.name : '—'
+            div(class="mb-3")
+              span(class="text-muted d-block")= t('views.tasks.creator')
+              span(class="fs-6 fw-bold")= task.creator ? `${task.creator.firstName} ${task.creator.lastName}` : '—'
+            div(class="mb-3")
+              span(class="text-muted d-block")= t('views.tasks.executor')
+              span(class="fs-6")= task.executor ? `${task.executor.firstName} ${task.executor.lastName}` : '—'
+            div(class="border-top pt-2")
+              span(class="text-muted small")= `${t('views.tasks.createdAt')}: ${new Date(task.createdAt).toLocaleString()}`

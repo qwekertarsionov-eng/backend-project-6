@@ -1,0 +1,40 @@
+extends ../layouts/application.pug
+
+block content
+  div(class="container-fluid flex-grow-1")
+    h1(class="my-4")= t('views.tasks.index.title')
+    if isAuthenticated
+      a(class="btn btn-primary mb-3" href="/tasks/new")= t('views.tasks.index.create')
+    
+    table(class="table table-striped table-hover shadow-sm bg-white rounded")
+      thead(class="table-dark")
+        tr
+          th= t('views.tasks.id')
+          th= t('views.tasks.name')
+          th= t('views.tasks.status')
+          th= t('views.tasks.creator')
+          th= t('views.tasks.executor')
+          th= t('views.tasks.createdAt')
+          th= t('views.tasks.actions')
+      tbody
+        if tasks && tasks.length > 0
+          each task in tasks
+            tr
+              td= task.id
+              td
+                a(href=`/tasks/${task.id}`)= task.name
+              td= task.status ? task.status.name : ''
+              td= task.creator ? `${task.creator.firstName} ${task.creator.lastName}` : ''
+              td= task.executor ? `${task.executor.firstName} ${task.executor.lastName}` : ''
+              td= new Date(task.createdAt).toLocaleString()
+              td
+                div(class="d-flex")
+                  if isAuthenticated
+                    a(class="btn btn-primary btn-sm me-2" href=`/tasks/${task.id}/edit`)= t('views.tasks.edit.submit')
+                    if currentUser && task.creatorId === currentUser.id
+                      form(action=`/tasks/${task.id}` method="POST")
+                        input(type="hidden" name="_method" value="DELETE")
+                        input(class="btn btn-danger btn-sm" type="submit" value=t('views.statuses.delete.submit'))
+        else
+          tr
+            td(colspan="7" class="text-center text-muted py-4") No tasks found.

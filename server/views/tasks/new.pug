@@ -1,0 +1,25 @@
+extends ../layouts/application.pug
+
+block content
+  div(class="container-fluid flex-grow-1")
+    h1(class="my-4")= t('views.tasks.new.title')
+    form(action="/tasks" method="POST")
+      div(class="mb-3")
+        label(for="data_name")= t('views.tasks.name')
+        input(id="data_name" name="data[name]" class="form-control" type="text" value=(task ? task.name : ''))
+      div(class="mb-3")
+        label(for="data_description")= t('views.tasks.description')
+        textarea(id="data_description" name="data[description]" class="form-control" rows="3")= task ? task.description : ''
+      div(class="mb-3")
+        label(for="data_statusId")= t('views.tasks.status')
+        select(id="data_statusId" name="data[statusId]" class="form-control")
+          option(value="") Select status
+          each status in statuses
+            option(value=status.id selected=(status.id === task.statusId))= status.name
+      div(class="mb-3")
+        label(for="data_executorId")= t('views.tasks.executor')
+        select(id="data_executorId" name="data[executorId]" class="form-control")
+          option(value="") Select executor
+          each user in users
+            option(value=user.id selected=(user.id === task.executorId))= `${user.firstName} ${user.lastName}`
+      input(class="btn btn-primary" type="submit" value=t('views.tasks.new.submit'))
