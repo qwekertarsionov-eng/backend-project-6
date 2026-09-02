@@ -18,6 +18,8 @@ import en from './locales/en.js';
 import qs from 'qs';
 import TaskStatus from './models/TaskStatus.js';
 import Task from './models/Task.js';
+import Label from './models/Label.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,7 +33,7 @@ export default async (app) => {
   const knex = Knex(knexConfig[mode]);
   Model.knex(knex);
 
-  app.decorate('models', { User, TaskStatus, Task });
+ app.decorate('models', { User, TaskStatus, Task, Label });
 
   app.addHook('onClose', async () => {
     await knex.destroy();
@@ -287,33 +289,79 @@ export default async (app) => {
     request.flash('success', app.i18n.t('flash.tasks.delete.success'));
     return reply.redirect('/tasks');
   });
-  // Исправленный роут-заглушка для имитации PATCH и DELETE
-  app.post('/tasks/:id', async (request, reply) => {
-    const method = request.body?._method?.toUpperCase();
-    
-    if (method === 'DELETE') {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/tasks/${request.params.id}`,
-        // Передаем куки авторизации, чтобы система знала, кто удаляет задачу
-        cookies: request.cookies, 
-      });
-      return reply.code(res.statusCode).send(res.body);
-    }
-    
-    if (method === 'PATCH') {
-      const res = await app.inject({
-        method: 'PATCH',
-        url: `/tasks/${request.params.id}`,
-        payload: request.body, // Для PATCH передаем измененные данные формы
-        cookies: request.cookies,
-      });
-      return reply.code(res.statusCode).send(res.body);
-    }
-
-    return reply.code(404).send({ error: 'Route not found' });
+    // 1.  GET /labels - Список всех меток
+  app.get('/labels', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    const labels = await app.models.Label.query();
+    return reply.view('labels/index', { labels });
   });
 
+  // 2.  GET /labels/new - Страница создания
+  app.get('/labels/new', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    return reply.view('labels/new', { label: {} });
+  });
+
+  // 3. . POST /labels - Создание новой метки
+  app.post('/labels', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    const labelData = request.body.data;
+    try {
+      await app.models.Label.query().insert(labelData);
+      request.flash('success', app.i18n.t('flash.labels.create.success'));
+      return reply.redirect('/labels');
+    } catch (err) {
+      request.flash('error', app.i18n.t('flash.labels.create.error'));
+      return reply.view('labels/new', { label: labelData, errors: err.data });
+    }
+  });
+
+  // 4.  GET /labels/:id/edit - Страница редактирования
+  app.get('/labels/:id/edit', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    const label = await app.models.Label.query().findById(request.params.id);
+    return reply.view('labels/edit', { label });
+  });
+
+  // Роут-заглушка для перехвата PATCH/DELETE для меток
+  app.post('/labels/:id', async (request, reply) => {
+    const method = request.body?._method?.toUpperCase();
+    if (method === 'DELETE') {
+      const res = await app.inject({ method: 'DELETE', url: `/labels/${request.params.id}`, cookies: request.cookies });
+      return reply.code(res.statusCode).send(res.body);
+    }
+    if (method === 'PATCH') {
+      const res = await app.inject({ method: 'PATCH', url: `/labels/${request.params.id}`, payload: request.body, cookies: request.cookies });
+      return reply.code(res.statusCode).send(res.body);
+    }
+    return reply.code(404).send({ error: 'Not found' });
+  });
+
+  // 5. PATCH /labels/:id - обновление
+  app.patch('/labels/:id', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    try {
+      const label = await app.models.Label.query().findById(request.params.id);
+      await label.$query().patch(request.body.data);
+      request.flash('success', app.i18n.t('flash.labels.update.success'));
+      return reply.redirect('/labels');
+    } catch (err) {
+      return reply.view('labels/edit', { label: { id: request.params.id, ...request.body.data }, errors: err.data });
+    }
+  });
+
+  // 6. DELETE /labels/:id - удаление
+  app.delete('/labels/:id', async (request, reply) => {
+    if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    try {
+      await app.models.Label.query().deleteById(request.params.id);
+      request.flash('success', app.i18n.t('flash.labels.delete.success'));
+    } catch {
+      // База данных выкинет ошибку, если метка связана с задачей (RESTRICT)
+      request.flash('error', app.i18n.t('flash.labels.delete.error'));
+    }
+    return reply.redirect('/labels');
+  });
 
   // Страница регистрации
   app.get('/users/new', async (request, reply) => reply.view('users/new', { user: {} }));

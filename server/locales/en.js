@@ -1,6 +1,11 @@
 export default {
   en: {
     flash: {
+      labels: {
+        create: { success: 'Label successfully created', error: 'Failed to create label' },
+        update: { success: 'Label successfully updated', error: 'Failed to update label' },
+        delete: { success: 'Label successfully deleted', error: 'Cannot delete label' },
+        },
       tasks: {
         create: { success: 'Task successfully created', error: 'Failed to create task' },
         update: { success: 'Task successfully updated', error: 'Failed to update task' },
@@ -23,6 +28,16 @@ export default {
       },
     appName: 'Task Manager',
     views: {
+      labels: {
+        id: 'ID',
+        name: 'Name',
+        createdAt: 'Created At',
+        actions: 'Actions',
+        index: { title: 'Labels', create: 'Create label' },
+        new: { title: 'Create label', submit: 'Create' },
+        edit: { title: 'Edit label', submit: 'Save' },
+        delete: { submit: 'Delete' },
+      },
       tasks: {
       id: 'ID',
       name: 'Name',
@@ -60,6 +75,7 @@ export default {
       },
       layouts: {
         application: {
+          labels: 'Labels',
           tasks: 'Tasks',
           statuses: 'Statuses',
           users: 'Users',
