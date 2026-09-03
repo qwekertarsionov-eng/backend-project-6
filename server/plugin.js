@@ -203,7 +203,7 @@ export default async (app) => {
   });
     // 1. GET /tasks - Список всех задач
   app.get('/tasks', async (request, reply) => {
-    const tasks = await Task.query().withGraphFetched('[status, creator, executor]');
+    const tasks = await Task.query().withGraphFetched('[status, creator, executor, labels]');
     return reply.view('tasks/index', { tasks });
   });
 
@@ -212,29 +212,42 @@ export default async (app) => {
     if (!request.isAuthenticated()) return reply.redirect('/session/new');
     const statuses = await app.models.TaskStatus.query();
     const users = await app.models.User.query();
-    return reply.view('tasks/new', { task: {}, statuses, users });
+    const labels = await app.models.Label.query(); // Добавили эту строку
+    return reply.view('tasks/new', { task: {}, statuses, users, labels });
   });
 
   // 3. POST /tasks - Создание новой задачи
   app.post('/tasks', async (request, reply) => {
     if (!request.isAuthenticated()) return reply.redirect('/session/new');
+    
+    const { labels, ...rawTaskData } = request.body.data;
+    
+    // Преобразуем массив ID меток в формат отношений Objection.js [{ id: 1 }, { id: 2 }]
+    const labelsData = labels 
+      ? (Array.isArray(labels) ? labels : [labels]).map((id) => ({ id: Number(id) }))
+      : [];
+
     const taskData = {
-      ...request.body.data,
+      ...rawTaskData,
       creatorId: request.user.id,
-      statusId: Number(request.body.data.statusId),
-      executorId: request.body.data.executorId ? Number(request.body.data.executorId) : null,
+      statusId: Number(rawTaskData.statusId),
+      executorId: rawTaskData.executorId ? Number(rawTaskData.executorId) : null,
+      labels: labelsData, // Передаем граф связей
     };
+
     try {
-      await Task.query().insert(taskData);
+      // Исполняем безопасную вставку графа
+      await app.models.Task.query().insertGraph(taskData, { relate: true });
       request.flash('success', app.i18n.t('flash.tasks.create.success'));
       return reply.redirect('/tasks');
     } catch (err) {
       const statuses = await app.models.TaskStatus.query();
       const users = await app.models.User.query();
-      request.flash('error', app.i18n.t('flash.tasks.create.error'));
-      return reply.view('tasks/new', { task: taskData, statuses, users, errors: err.data });
+      const allLabels = await app.models.Label.query();
+      return reply.view('tasks/new', { task: taskData, statuses, users, labels: allLabels, errors: err.data });
     }
   });
+
 
   // 4. GET /tasks/:id - Просмотр одной задачи
   app.get('/tasks/:id', async (request, reply) => {
@@ -246,33 +259,47 @@ export default async (app) => {
   // 5. GET /tasks/:id/edit - Страница редактирования задачи
   app.get('/tasks/:id/edit', async (request, reply) => {
     if (!request.isAuthenticated()) return reply.redirect('/session/new');
-    const { id } = request.params;
-    const task = await Task.query().findById(id);
+    const task = await app.models.Task.query().findById(request.params.id).withGraphFetched('labels');
     const statuses = await app.models.TaskStatus.query();
     const users = await app.models.User.query();
-    return reply.view('tasks/edit', { task, statuses, users });
+    const labels = await app.models.Label.query(); // Добавили эту строку
+    return reply.view('tasks/edit', { task, statuses, users, labels });
   });
 
   // 6. PATCH /tasks/:id - Обновление задачи
   app.patch('/tasks/:id', async (request, reply) => {
     if (!request.isAuthenticated()) return reply.redirect('/session/new');
-    const { id } = request.params;
+    
+    const { labels, ...rawTaskData } = request.body.data;
+    
+    const labelsData = labels 
+      ? (Array.isArray(labels) ? labels : [labels]).map((id) => ({ id: Number(id) }))
+      : [];
+
     const updateData = {
-      ...request.body.data,
-      statusId: Number(request.body.data.statusId),
-      executorId: request.body.data.executorId ? Number(request.body.data.executorId) : null,
+      id: Number(request.params.id),
+      ...rawTaskData,
+      statusId: Number(rawTaskData.statusId),
+      executorId: rawTaskData.executorId ? Number(rawTaskData.executorId) : null,
+      labels: labelsData,
     };
+
     try {
-      const task = await Task.query().findById(id);
-      await task.$query().patch(updateData);
+      // upsertGraph автоматически удалит старые связи m2m и запишет новые
+      await app.models.Task.query().upsertGraph(updateData, {
+        relate: true,
+        unrelate: true,
+      });
       request.flash('success', app.i18n.t('flash.tasks.update.success'));
       return reply.redirect('/tasks');
     } catch (err) {
       const statuses = await app.models.TaskStatus.query();
       const users = await app.models.User.query();
-      return reply.view('tasks/edit', { task: { id, ...updateData }, statuses, users, errors: err.data });
+      const allLabels = await app.models.Label.query();
+      return reply.view('tasks/edit', { task: updateData, statuses, users, labels: allLabels, errors: err.data });
     }
   });
+
 
   // 7. DELETE /tasks/:id - Удаление задачи
   app.delete('/tasks/:id', async (request, reply) => {
@@ -323,19 +350,41 @@ export default async (app) => {
     return reply.view('labels/edit', { label });
   });
 
-  // Роут-заглушка для перехвата PATCH/DELETE для меток
-  app.post('/labels/:id', async (request, reply) => {
-    const method = request.body?._method?.toUpperCase();
+  // Роут-заглушка для обработки PATCH и DELETE из HTML-форм задач
+  // Исправленный роут-заглушка с принудительной установкой типа контента HTML
+  app.post('/tasks/:id', async (request, reply) => {
+    const method = request.body?._method?.toUpperCase() || request.body?.data?._method?.toUpperCase();
+    
     if (method === 'DELETE') {
-      const res = await app.inject({ method: 'DELETE', url: `/labels/${request.params.id}`, cookies: request.cookies });
-      return reply.code(res.statusCode).send(res.body);
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/tasks/${request.params.id}`,
+        cookies: request.cookies, 
+      });
+      // Если это редирект (302), перенаправляем браузер по адресу
+      if (res.statusCode === 302) {
+        return reply.redirect(res.headers.location);
+      }
+      return reply.code(res.statusCode).type('text/html').send(res.body);
     }
-    if (method === 'PATCH') {
-      const res = await app.inject({ method: 'PATCH', url: `/labels/${request.params.id}`, payload: request.body, cookies: request.cookies });
-      return reply.code(res.statusCode).send(res.body);
+    
+    // Иначе это форма редактирования (PATCH)
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/tasks/${request.params.id}`,
+      payload: request.body,
+      cookies: request.cookies,
+    });
+
+    // Обязательно обрабатываем редирект после успешного сохранения!
+    if (res.statusCode === 302) {
+      return reply.redirect(res.headers.location);
     }
-    return reply.code(404).send({ error: 'Not found' });
+
+    // Если возникла ошибка валидации, возвращаем форму с типом text/html
+    return reply.code(res.statusCode).type('text/html').send(res.body);
   });
+
 
   // 5. PATCH /labels/:id - обновление
   app.patch('/labels/:id', async (request, reply) => {

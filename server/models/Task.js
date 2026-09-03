@@ -1,6 +1,7 @@
 import { Model, snakeCaseMappers } from 'objection';
 import User from './User.js';
 import TaskStatus from './TaskStatus.js';
+import Label from './Label.js';
 
 export default class Task extends Model {
   static get tableName() {
@@ -42,6 +43,20 @@ export default class Task extends Model {
         relation: Model.BelongsToOneRelation,
         modelClass: User,
         join: { from: 'tasks.executorId', to: 'users.id' },
+      },
+      // Добавляем отношение Many-to-Many с метками
+      labels: {
+        relation: Model.ManyToManyRelation,
+        modelClass: Label,
+        join: {
+          from: 'tasks.id',
+          through: {
+            // Явно указываем snake_case имена колонок из таблицы базы данных
+            from: 'tasks_labels.task_id',
+            to: 'tasks_labels.label_id',
+          },
+          to: 'labels.id',
+        },
       },
     };
   }

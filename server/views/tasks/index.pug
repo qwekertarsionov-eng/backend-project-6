@@ -22,6 +22,10 @@ block content
             tr
               td= task.id
               td
+                a(href=`/tasks/${task.id}` class="me-2")= task.name
+                if task.labels && task.labels.length > 0
+                  each label in task.labels
+                    span(class="badge bg-secondary me-1 small")= label.name
                 a(href=`/tasks/${task.id}`)= task.name
               td= task.status ? task.status.name : ''
               td= task.creator ? `${task.creator.firstName} ${task.creator.lastName}` : ''

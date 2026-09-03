@@ -24,10 +24,13 @@ block content
           option(value="") Select status
           each status in statuses
             option(value=status.id selected=(status.id === Number(task.statusId)))= status.name
+      //- ... предыдущие поля формы (name, description, status, executor)
       div(class="mb-3")
-        label(for="data_executorId")= t('views.tasks.executor')
-        select(id="data_executorId" name="data[executorId]" class="form-control")
-          option(value="") Select executor
-          each user in users
-            option(value=user.id selected=(user.id === Number(task.executorId)))= `${user.firstName} ${user.lastName}`
+        label(for="data_labels") Labels
+        select(id="data_labels" name="data[labels]" class="form-control" multiple)
+          each label in labels
+            //- Проверяем, привязана ли метка к текущей задаче
+            - const isSelected = task.labels && task.labels.some(l => Number(l.id) === Number(label.id))
+            option(value=label.id selected=isSelected)= label.name
       input(class="btn btn-primary" type="submit" value=t('views.tasks.edit.submit'))
+
