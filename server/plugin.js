@@ -202,10 +202,50 @@ export default async (app) => {
     return reply.redirect('/statuses');
   });
     // 1. GET /tasks - Список всех задач
+  // GET /tasks - Список задач с динамической фильтрацией (Исправленный)
   app.get('/tasks', async (request, reply) => {
-    const tasks = await Task.query().withGraphFetched('[status, creator, executor, labels]');
-    return reply.view('tasks/index', { tasks });
+    const filter = request.query || {};
+    
+    const query = app.models.Task.query().withGraphFetched('[status, creator, executor, labels]');
+
+    // 1. Фильтр по статусу (используем имя колонки бд: status_id)
+    if (filter.statusId) {
+      query.where('status_id', Number(filter.statusId));
+    }
+
+    // 2. Фильтр по исполнителю (используем имя колонки бд: executor_id)
+    if (filter.executorId) {
+      query.where('executor_id', Number(filter.executorId));
+    }
+
+    // 3. Фильтр по метке (Many-to-Many связь)
+    if (filter.labelId) {
+      query.whereExists(
+        app.models.Task.relatedQuery('labels').where('labels.id', Number(filter.labelId))
+      );
+    }
+
+    // 4. Фильтр "Только мои задачи" (используем имя колонки бд: creator_id)
+    if (filter.isCreator === 'true' && request.isAuthenticated()) {
+      query.where('creator_id', request.user.id);
+    }
+
+    const tasks = await query;
+
+    const statuses = await app.models.TaskStatus.query();
+    const users = await app.models.User.query();
+    const labels = await app.models.Label.query();
+
+    return reply.view('tasks/index', {
+      tasks,
+      statuses,
+      users,
+      labels,
+      filter,
+    });
   });
+
+
 
   // 2. GET /tasks/new - Форма создания задачи
   app.get('/tasks/new', async (request, reply) => {

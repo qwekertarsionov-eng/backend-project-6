@@ -3,6 +3,34 @@ extends ../layouts/application.pug
 block content
   div(class="container-fluid flex-grow-1")
     h1(class="my-4")= t('views.tasks.index.title')
+    div(class="p-4 mb-4 bg-light border rounded shadow-sm")
+      form(action="/tasks" method="GET" class="row g-3 align-items-end")
+        div(class="col-md-3")
+          label(for="statusId" class="form-label")= t('views.tasks.filter.status')
+          select(id="statusId" name="statusId" class="form-select")
+            option(value="")
+            each status in statuses
+              option(value=status.id selected=(String(status.id) === filter.statusId))= status.name
+              
+        div(class="col-md-3")
+          label(for="executorId" class="form-label")= t('views.tasks.filter.executor')
+          select(id="executorId" name="executorId" class="form-select")
+            option(value="")
+            each user in users
+              option(value=user.id selected=(String(user.id) === filter.executorId))= `${user.firstName} ${user.lastName}`
+              
+        div(class="col-md-3")
+          label(for="labelId" class="form-label")= t('views.tasks.filter.label')
+          select(id="labelId" name="labelId" class="form-select")
+            option(value="")
+            each label in labels
+              option(value=label.id selected=(String(label.id) === filter.labelId))= label.name
+              
+        div(class="col-md-3 d-flex flex-column")
+          div(class="form-check mb-2")
+            input(id="isCreator" name="isCreator" type="checkbox" class="form-check-input" value="true" selected=(filter.isCreator === 'true'))
+            label(for="isCreator" class="form-check-label")= t('views.tasks.filter.isCreator')
+          input(type="submit" class="btn btn-primary w-100" value=t('views.tasks.filter.submit'))
     if isAuthenticated
       a(class="btn btn-primary mb-3" href="/tasks/new")= t('views.tasks.index.create')
     
