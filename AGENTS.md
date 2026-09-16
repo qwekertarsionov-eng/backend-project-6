@@ -16,7 +16,7 @@ npm run migrate   # knex migrate:latest (разворачивает server/migra
 
 ## Структура и точка входа
 
-- `package.json` `main` → `server/app.js`: экспортирует `buildApp(options)` — создаёт и настраивает fastify-приложение (`server/bin/server.js` и тесты используют её). НЕ выноси роуты из `server/plugin.js` без нужды — они все там.
+- `package.json` `main` → `server/app.js`: двойной экспорт — named `buildApp(options)` создаёт и настраивает fastify-приложение (используют `server/bin/server.js` и тесты); default-экспорт — async-плагин `(fastify, opts)` (ровно 2 аргумента), которым харнесс Hexlet запускает сервер через `npx fastify start ... -o <main>`; свойство `startApp.options = { rewriteUrl }` передаёт rewriteUrl в конструктор Fastify. НЕ выноси роуты из `server/plugin.js` без нужды — они все там.
 - `server/plugin.js` — каркас (knex/Model.knex, formbody/static/view/secure-session/passport/i18n/flash) + все роуты. Декораторы: `app.models` (User/TaskStatus/Task/Label), `app.knex`.
 - База: `knexfile.js` — `development` sqlite-файл `database.sqlite` (+ `PRAGMA foreign_keys = ON`), `test` sqlite `:memory:` при `NODE_ENV=test`, `production` PostgreSQL через `DATABASE_URL`. Миграции: `server/migrations/` (FK RESTRICT/CASCADE заданы на уровне БД).
 

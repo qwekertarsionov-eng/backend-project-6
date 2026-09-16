@@ -1,4 +1,4 @@
-import buildApp from '../server/app.js';
+import { buildApp } from '../server/app.js';
 
 process.env.NODE_ENV = 'test';
 

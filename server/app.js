@@ -14,8 +14,14 @@ const rewriteUrl = (req) => {
   return req.url;
 };
 
-export default async function buildApp(options = {}) {
+export async function buildApp(options = {}) {
   const app = fastify({ logger: options.logger ?? false, rewriteUrl });
   await initApp(app, options);
   return app;
 }
+
+export default async function startApp(app, opts) {
+  await initApp(app, opts);
+}
+
+export const options = { rewriteUrl };
