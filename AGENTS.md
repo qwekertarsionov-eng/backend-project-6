@@ -41,3 +41,4 @@ npm run migrate   # knex migrate:latest (разворачивает server/migra
 - `.github/workflows/*` (hexlet-check.yml и др.) — автогенерируемые, на GitHub их ставит сам Хекслет; НЕ создавать, НЕ редактировать, НЕ удалять. Локально их может не быть.
 - `database.sqlite` в .gitignore; dev-модификации БД коммитить нельзя.
 - `make test` обязан сначала собрать css (`dist/`) — тест `test/assets.test.js` проверяет `/assets/main.css` на наличии tailwind-классов.
+- **Ошибки** → Bugsink через `@sentry/node`. Init в `server/instrument.js` (preload `--import`); DSN из env `SENTRY_DSN`; без него SDK не инициализируется и не влияет на тесты. Роут-ошибки Fastify 5 ловит `Sentry.fastifyIntegration()` (диагностический канал, `setupFastifyErrorHandler` не нужен). Разовый смок-тест: `SENTRY_SMOKE=1` (лёмпочка, в проде не держать).
