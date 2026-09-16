@@ -1,12 +1,12 @@
-import fastify from 'fastify';
-import initApp from './plugin.js';
+import fastify from "fastify";
+import initApp from "./plugin.js";
 
-const allowedMethods = ['HEAD', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'];
+const allowedMethods = ["HEAD", "PUT", "DELETE", "OPTIONS", "PATCH"];
 
 const rewriteUrl = (req) => {
-  if (req.method.toUpperCase() === 'POST') {
-    const { searchParams } = new URL(req.url, 'http://localhost');
-    const method = searchParams.get('_method')?.toUpperCase();
+  if (req.method.toUpperCase() === "POST") {
+    const { searchParams } = new URL(req.url, "http://localhost");
+    const method = searchParams.get("_method")?.toUpperCase();
     if (method && allowedMethods.includes(method)) {
       req.method = method;
     }

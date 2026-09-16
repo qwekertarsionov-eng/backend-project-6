@@ -1,11 +1,11 @@
-import { Model, snakeCaseMappers } from 'objection';
-import objectionUnique from 'objection-unique';
+import { Model, snakeCaseMappers } from "objection";
+import objectionUnique from "objection-unique";
 
-const unique = objectionUnique({ fields: ['name'] });
+const unique = objectionUnique({ fields: ["name"] });
 
 export default class TaskStatus extends unique(Model) {
   static get tableName() {
-    return 'task_statuses';
+    return "task_statuses";
   }
 
   static get columnNameMappers() {
@@ -14,11 +14,11 @@ export default class TaskStatus extends unique(Model) {
 
   static get jsonSchema() {
     return {
-      type: 'object',
-      required: ['name'],
+      type: "object",
+      required: ["name"],
       properties: {
-        id: { type: 'integer' },
-        name: { type: 'string', minLength: 1 },
+        id: { type: "integer" },
+        name: { type: "string", minLength: 1 },
       },
     };
   }

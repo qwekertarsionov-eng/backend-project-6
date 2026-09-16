@@ -22,8 +22,8 @@ export default [
   {
     // Здесь вы можете отключать или переопределять правила, если нужно
     rules: {
-      "no-unused-vars": "warn", // предупреждать о неиспользуемых переменных
-      "no-console": "off",      // разрешить использование console.log
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }], // предупреждать о неиспользуемых переменных
+      "no-console": "off", // разрешить использование console.log
     },
   },
 ];

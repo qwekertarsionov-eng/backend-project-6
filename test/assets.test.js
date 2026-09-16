@@ -1,7 +1,7 @@
-import { beforeEach, afterEach, describe, expect, it } from 'vitest';
-import { buildAppTest } from './helpers.js';
+import { beforeEach, afterEach, describe, expect, it } from "vitest";
+import { buildAppTest } from "./helpers.js";
 
-describe('assets', () => {
+describe("assets", () => {
   let app;
 
   beforeEach(async () => {
@@ -12,10 +12,10 @@ describe('assets', () => {
     await app.close();
   });
 
-  it('отдаёт собранный css', async () => {
-    const res = await app.inject({ method: 'GET', url: '/assets/main.css' });
+  it("отдаёт собранный css", async () => {
+    const res = await app.inject({ method: "GET", url: "/assets/main.css" });
 
     expect(res.statusCode).toBe(200);
-    expect(res.payload).toContain('.rounded');
+    expect(res.payload).toContain(".rounded");
   });
 });

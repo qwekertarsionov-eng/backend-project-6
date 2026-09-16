@@ -43,3 +43,24 @@ npm run migrate   # knex migrate:latest (разворачивает server/migra
 - `database.sqlite` в .gitignore; dev-модификации БД коммитить нельзя.
 - `make test` обязан сначала собрать css (`dist/`) — тест `test/assets.test.js` проверяет `/assets/main.css` на наличии tailwind-классов.
 - **Ошибки** → Bugsink через `@sentry/node`. Init в `server/instrument.js` (preload `--import`); DSN из env `SENTRY_DSN`; без него SDK не инициализируется и не влияет на тесты. Роут-ошибки Fastify 5 ловит `Sentry.fastifyIntegration()` (диагностический канал, `setupFastifyErrorHandler` не нужен). Разовый смок-тест: `SENTRY_SMOKE=1` (лёмпочка, в проде не держать).
+
+## План и процесс проверки (lint-контракт Hexlet)
+
+CI (`hexlet/project-action`) после Chromium-e2e запускает `@hexlet/project` → `oxlint && oxfmt --ignore-path=.oxfmtignore --check` поверх решения. Конфиги приходят из образа, в репозиторий их коммитить не нужно.
+
+- `oxlint@1.80`: `categories.correctness=error`, плагины typescript/unicorn/oxc/import/promise/node/jsdoc/vitest/... Неиспользуемые параметры и переменные должны начинаться с `_`.
+- `oxfmt@0.65`: дефолты — двойные кавычки, `printWidth: 100`, `trailingComma: "all"`, `semi`, `arrowParens: "always"`. Поэтому весь JS в репозитории отформатирован oxfmt; `.eta`, `.css`, `.json`, `.md`, `.yml` форматтер игнорирует.
+- Lint-тулинг держим в `/tmp/opencode/lintcheck` (`oxfmt@0.65.0`, `oxlint@1.80.0`) вместе с извлечёнными из слоя образа `.oxfmtignore` и `.oxlintrc.json`; в репозиторий их не добавляем.
+- Свой eslint не должен ругаться на `_`-префикс: в `eslint.config.js` правило `no-unused-vars: ["warn", { argsIgnorePattern: "^_" }]`.
+
+### План исполнения (субагенты)
+
+Вся работа выполняется субагентами (вложенность допустима), нагрузка сбалансирована:
+
+1. Agent A — правки под oxlint в `server/plugin.js`: `_options` вместо `options`, спред без пустого fallback `|| {}`.
+2. Agent B — oxfmt-реформат всех JS-файлов.
+3. Agent C — верификация: oxlint 0 ошибок, `make lint`, `make test` 31/31, Playwright-харнесс 28/28.
+4. Agent D — иное решение для warning (eslint `argsIgnorePattern`), сохранение плана в `AGENTS.md`.
+5. Agent E — коммит и пуш, наблюдение за CI.
+
+Запуск харнесса: сервер `npx fastify start -a 0.0.0.0 -p 3000 -l info -o server/app.js`; тесты в `/tmp/opencode/harness/src` с `LOCALE=ru-RU BASE_URL=http://localhost:3000` и `LD_LIBRARY_PATH` из `/tmp/opencode/sysroot`-каталога `/tmp/opencode/pw/sysroot`.
