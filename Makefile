@@ -1,15 +1,19 @@
-# Команда для первоначальной установки зависимостей проекта
+setup: install build migrate
+
 install:
 	npm ci
 
-# Запуск линтера для проверки стиля кодирования (добавьте ключи линтера по необходимости)
+build:
+	npm run build
+
+migrate:
+	npm run migrate
+
+dev:
+	npm run dev
+
 lint:
 	npx eslint .
 
-# Запуск тестов
-test:
+test: build
 	npm test
-
-# Публикация пакета в режиме симуляции (dry-run) для проверки сборки npm-пакета
-publish:
-	npm publish --dry-run

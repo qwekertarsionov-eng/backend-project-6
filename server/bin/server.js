@@ -1,22 +1,15 @@
 import dotenv from 'dotenv';
-import fastify from 'fastify';
-import initApp from '../plugin.js';
+import buildApp from '../app.js';
 
 dotenv.config();
 
 const startServer = async () => {
-  // Создаем инстанс Fastify здесь
-  const app = fastify({ logger: true });
-  
-  // Передаем его в плагин инициализации
-  await initApp(app);
-  
+  const app = await buildApp({ logger: true });
   const port = process.env.PORT || 3000;
   const host = '0.0.0.0';
-
   try {
     await app.listen({ port, host });
-    console.log(`Сервер запущен на http://${host}:${port}`);
+    console.log(`Server running on http://${host}:${port}`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);

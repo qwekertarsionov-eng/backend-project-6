@@ -1,0 +1,5 @@
+<% layout("./layouts/application", { header: it.t("views.index.hello") }) %>
+<div class="rounded-lg bg-white p-10 text-center shadow-sm">
+  <h1 class="text-4xl font-bold text-gray-900"><%= it.t('views.index.hello') %></h1>
+  <p class="mx-auto mt-4 max-w-2xl text-lg text-gray-600"><%= it.t('views.index.description') %></p>
+</div>

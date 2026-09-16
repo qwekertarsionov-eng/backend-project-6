@@ -1,0 +1,26 @@
+<% layout("../layouts/application", { header: it.t("views.users.edit.title") }) %>
+<h1 class="my-4 text-2xl font-bold"><%= it.t('views.users.edit.title') %></h1>
+<% if (it.errors) { const errs = Array.isArray(it.errors) ? it.errors : Object.values(it.errors).flat().map((e) => (typeof e === 'object' && e !== null) ? e : { message: e }); %>
+  <div role="alert" class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+    <ul class="list-disc space-y-1 pl-4"><% errs.forEach((e) => { %><li class="text-sm"><%= e.message ?? e %></li><% }) %></ul>
+  </div>
+<% } %>
+<form action="<%= `/users/${it.user.id}?_method=PATCH` %>" method="post" class="mt-4 max-w-md space-y-4">
+  <div>
+    <label for="data_firstName" class="block text-sm font-medium text-gray-700"><%= it.t('views.users.firstName') %></label>
+    <input id="data_firstName" name="data[firstName]" type="text" value="<%= it.user?.firstName ?? '' %>" class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none">
+  </div>
+  <div>
+    <label for="data_lastName" class="block text-sm font-medium text-gray-700"><%= it.t('views.users.lastName') %></label>
+    <input id="data_lastName" name="data[lastName]" type="text" value="<%= it.user?.lastName ?? '' %>" class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none">
+  </div>
+  <div>
+    <label for="data_email" class="block text-sm font-medium text-gray-700"><%= it.t('views.users.email') %></label>
+    <input id="data_email" name="data[email]" type="email" value="<%= it.user?.email ?? '' %>" class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none">
+  </div>
+  <div>
+    <label for="data_password" class="block text-sm font-medium text-gray-700"><%= it.t('views.users.password') %></label>
+    <input id="data_password" name="data[password]" type="password" class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none">
+  </div>
+  <button type="submit" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"><%= it.t('views.users.edit.submit') %></button>
+</form>

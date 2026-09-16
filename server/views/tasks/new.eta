@@ -1,0 +1,44 @@
+<% layout("../layouts/application", { header: it.t("views.tasks.new.title") }) %>
+<h1 class="my-4 text-2xl font-bold"><%= it.t('views.tasks.new.title') %></h1>
+<% if (it.errors) { const errs = Array.isArray(it.errors) ? it.errors : Object.values(it.errors).flat().map((e) => (typeof e === 'object' && e !== null) ? e : { message: e }); %>
+  <div role="alert" class="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+    <ul class="list-disc space-y-1 pl-4"><% errs.forEach((e) => { %><li class="text-sm"><%= e.message ?? e %></li><% }) %></ul>
+  </div>
+<% } %>
+<form action="/tasks" method="post" class="mt-4 max-w-md space-y-4">
+  <div>
+    <label for="data_name" class="block text-sm font-medium text-gray-700"><%= it.t('views.tasks.name') %></label>
+    <input id="data_name" name="data[name]" type="text" value="<%= it.task?.name ?? '' %>" class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none">
+  </div>
+  <div>
+    <label for="data_description" class="block text-sm font-medium text-gray-700"><%= it.t('views.tasks.description') %></label>
+    <textarea id="data_description" name="data[description]" rows="3" class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"><%= it.task?.description ?? '' %></textarea>
+  </div>
+  <div>
+    <label for="data_statusId" class="block text-sm font-medium text-gray-700"><%= it.t('views.tasks.status') %></label>
+    <select id="data_statusId" name="data[statusId]" class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none">
+      <option value=""><%= it.t('views.tasks.selectStatus') %></option>
+      <% it.statuses.forEach((status) => { %>
+        <option value="<%= status.id %>"<%= Number(it.task?.statusId) === status.id ? ' selected' : '' %>><%= status.name %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div>
+    <label for="data_executorId" class="block text-sm font-medium text-gray-700"><%= it.t('views.tasks.executor') %></label>
+    <select id="data_executorId" name="data[executorId]" class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none">
+      <option value=""></option>
+      <% it.users.forEach((user) => { %>
+        <option value="<%= user.id %>"<%= Number(it.task?.executorId) === user.id ? ' selected' : '' %>><%= user.firstName %> <%= user.lastName %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div>
+    <label for="data_labels" class="block text-sm font-medium text-gray-700"><%= it.t('views.tasks.labels') %></label>
+    <select id="data_labels" name="data[labels]" multiple class="mt-1 block h-32 w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none">
+      <% it.labels.forEach((label) => { %>
+        <option value="<%= label.id %>"<%= it.task?.labels && it.task.labels.some((l) => Number(l.id) === Number(label.id)) ? ' selected' : '' %>><%= label.name %></option>
+      <% }) %>
+    </select>
+  </div>
+  <button type="submit" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"><%= it.t('views.tasks.new.submit') %></button>
+</form>

@@ -8,6 +8,14 @@ const migrations = {
   directory: path.join(__dirname, 'server', 'migrations'),
 };
 
+// sqlite по умолчанию не включает внешние ключи; включаем их, чтобы
+// поведение RESTRICT/CASCADE совпадало с PostgreSQL.
+const sqlitePool = {
+  afterCreate(conn, done) {
+    conn.run('PRAGMA foreign_keys = ON', (err) => done(err, conn));
+  },
+};
+
 export default {
   development: {
     client: 'sqlite3',
@@ -15,12 +23,14 @@ export default {
       filename: path.join(__dirname, 'database.sqlite'),
     },
     useNullAsDefault: true,
+    pool: sqlitePool,
     migrations,
   },
   test: {
     client: 'sqlite3',
     connection: ':memory:', // In-Memory режим по ТЗ Хекслета
     useNullAsDefault: true,
+    pool: sqlitePool,
     migrations,
   },
   production: {

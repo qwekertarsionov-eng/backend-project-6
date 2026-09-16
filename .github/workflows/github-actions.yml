@@ -9,30 +9,30 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      # Проверка будет проходить на стабильной версии Node.js (например, 20)
+      # Проверка будет проходить на стабильной версии Node.js
       matrix:
         node-version: [24.x]
 
     steps:
       # Шаг 1: Скачивание исходного кода проекта из репозитория
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # Шаг 2: Установка и настройка окружения Node.js
+      # Шаг 2: Установка и настройка окружения Node.js с кэшированием npm
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      # Шаг 3: Установка зависимостей проекта через Makefile
-      - name: Install dependencies
-        run: make install
+      # Шаг 3: Подготовка проекта: зависимости + сборка + миграции
+      - name: Setup project
+        run: make setup
 
       # Шаг 4: Запуск проверки линтером через Makefile
-      - name: Run linter
+      - name: Lint
         run: make lint
 
       # Шаг 5: Запуск тестов приложения через Makefile
-      - name: Run tests
+      - name: Test
         run: make test

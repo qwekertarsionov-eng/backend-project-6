@@ -7,6 +7,14 @@ export default {
           success: 'User successfully registered',
           error: 'Failed to register user',
         },
+        update: {
+          success: 'User successfully updated',
+          error: 'Failed to update user',
+        },
+        delete: {
+          success: 'User successfully deleted',
+          error: 'Failed to delete user',
+        },
       },
       statuses: {
         create: { success: 'Status successfully created', error: 'Failed to create status' },
@@ -38,7 +46,7 @@ export default {
       },
       index: {
         hello: 'Hello from Hexlet!',
-        description: 'This is a simple task manager built with Fastify and Pug.',
+        description: 'This is a simple task manager built with Fastify and Eta.',
       },
       users: {
         id: 'ID',
@@ -48,11 +56,18 @@ export default {
         password: 'Password',
         createdAt: 'Created At',
         actions: 'Actions',
+        index: {
+          empty: 'No users registered yet.',
+        },
         new: {
           submit: 'Register',
         },
         edit: {
+          title: 'Edit user',
           submit: 'Save',
+        },
+        delete: {
+          submit: 'Delete',
         },
       },
       statuses: {
@@ -63,6 +78,7 @@ export default {
         index: {
           title: 'Statuses',
           create: 'Create status',
+          empty: 'No statuses available.',
         },
         new: {
           title: 'Create status',
@@ -85,10 +101,20 @@ export default {
         executor: 'Executor',
         createdAt: 'Created At',
         actions: 'Actions',
-        index: { title: 'Tasks', create: 'Create task' },
+        index: {
+          title: 'Tasks',
+          create: 'Create task',
+          empty: 'No tasks found.',
+        },
         new: { title: 'Create task', submit: 'Create' },
         edit: { title: 'Edit task', submit: 'Save' },
         show: { title: 'Task Details' },
+        labels: 'Labels',
+        selectStatus: 'Select status',
+        noDescription: 'No description provided.',
+        delete: {
+          submit: 'Delete',
+        },
         filter: {
           status: 'Status',
           executor: 'Executor',
@@ -105,6 +131,7 @@ export default {
         index: {
           title: 'Labels',
           create: 'Create label',
+          empty: 'No labels available.',
         },
         new: {
           title: 'Create label',

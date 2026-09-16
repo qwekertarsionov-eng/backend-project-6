@@ -1,0 +1,33 @@
+<% layout("../layouts/application", { header: it.t("views.tasks.show.title") }) %>
+<h1 class="mb-4 text-2xl font-bold"><%= it.task.name %></h1>
+<% if (it.task.labels && it.task.labels.length) { %>
+  <div class="mb-4">
+    <% it.task.labels.forEach((label) => { %>
+      <span class="mr-1 rounded bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700"><%= label.name %></span>
+    <% }) %>
+  </div>
+<% } %>
+<div class="grid gap-6 md:grid-cols-3">
+  <div class="rounded-lg bg-white p-4 shadow-sm md:col-span-2">
+    <h2 class="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500"><%= it.t('views.tasks.description') %></h2>
+    <p class="text-gray-800"><%= it.task.description || it.t('views.tasks.noDescription') %></p>
+  </div>
+  <div class="space-y-4 rounded-lg bg-white p-4 shadow-sm">
+    <div>
+      <span class="block text-sm font-semibold text-gray-500"><%= it.t('views.tasks.status') %></span>
+      <span class="rounded bg-blue-100 px-2 py-0.5 text-sm font-medium text-blue-800"><%= it.task.status ? it.task.status.name : '—' %></span>
+    </div>
+    <div>
+      <span class="block text-sm font-semibold text-gray-500"><%= it.t('views.tasks.creator') %></span>
+      <span class="text-sm font-medium text-gray-900"><%= it.task.creator ? `${it.task.creator.firstName} ${it.task.creator.lastName}` : '—' %></span>
+    </div>
+    <div>
+      <span class="block text-sm font-semibold text-gray-500"><%= it.t('views.tasks.executor') %></span>
+      <span class="text-sm text-gray-900"><%= it.task.executor ? `${it.task.executor.firstName} ${it.task.executor.lastName}` : '—' %></span>
+    </div>
+    <div>
+      <span class="block text-sm font-semibold text-gray-500"><%= it.t('views.tasks.createdAt') %></span>
+      <span class="text-sm text-gray-900"><%= new Date(it.task.createdAt).toLocaleString() %></span>
+    </div>
+  </div>
+</div>
