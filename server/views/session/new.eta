@@ -3,8 +3,8 @@
 <section class="card mx-auto grid max-w-2xl grid-cols-2 gap-8">
   <div class="flex items-center justify-center text-7xl">🏔️</div>
   <form class="space-y-3" action="/session" method="post">
-    <label class="block"><span class="label"><%= it.t('views.users.email') %></span><input class="field" type="email" name="data[email]" id="data_email" placeholder="<%= it.t('views.users.email') %>"></label>
-    <label class="block"><span class="label"><%= it.t('views.users.password') %></span><input class="field" type="password" name="data[password]" id="data_password" placeholder="<%= it.t('views.users.password') %>"></label>
-    <button type="submit" class="btn btn-primary"><%= it.t('views.layouts.application.login') %></button>
+    <label class="block"><span class="label"><%= it.t('views.users.email') %></span><input class="field" type="email" name="data[email]" id="data_email" aria-label="<%= it.t('views.users.email') %>" placeholder="<%= it.t('views.users.email') %>"></label>
+    <label class="block"><span class="label"><%= it.t('views.users.password') %></span><input class="field" type="password" name="data[password]" id="data_password" aria-label="<%= it.t('views.users.password') %>" placeholder="<%= it.t('views.users.password') %>"></label>
+    <button type="submit" class="btn btn-primary"><%= it.t('views.session.new.submit') %></button>
   </form>
 </section>

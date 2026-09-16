@@ -9,7 +9,7 @@
   <form class="space-y-3" action="<%= `/labels/${it.label.id}?_method=PATCH` %>" method="post">
     <label class="block">
       <span class="label"><%= it.t('views.labels.name') %></span>
-      <input class="field" type="text" name="data[name]" id="data_name" value="<%= it.label?.name ?? '' %>">
+      <input class="field" type="text" name="data[name]" id="data_name" aria-label="<%= it.t('views.labels.name') %>" value="<%= it.label?.name ?? '' %>">
     </label>
     <button type="submit" class="btn btn-primary"><%= it.t('views.labels.edit.submit') %></button>
   </form>

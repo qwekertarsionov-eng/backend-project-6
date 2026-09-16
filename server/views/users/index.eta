@@ -19,12 +19,10 @@
           <td><%= user.email %></td>
           <td><%= new Date(user.createdAt).toLocaleString() %></td>
           <td class="space-x-1">
-            <% if (it.currentUser && Number(it.currentUser.id) === Number(user.id)) { %>
-              <a class="btn btn-primary" href="<%= `/users/${user.id}/edit` %>"><%= it.t('views.users.edit.submit') %></a>
-              <form action="<%= `/users/${user.id}?_method=DELETE` %>" method="post" style="display:inline">
-                <input type="submit" value="<%= it.t('views.users.delete.submit') %>" class="btn btn-danger">
-              </form>
-            <% } %>
+            <a class="btn btn-primary" href="<%= `/users/${user.id}/edit` %>"><%= it.t('views.users.edit.submit') %></a>
+            <form action="<%= `/users/${user.id}?_method=DELETE` %>" method="post" style="display:inline">
+              <input type="submit" value="<%= it.t('views.users.delete.submit') %>" class="btn btn-danger">
+            </form>
           </td>
         </tr>
       <% }) %>

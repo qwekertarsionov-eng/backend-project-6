@@ -7,21 +7,21 @@
 <% } %>
 <form class="max-w-4xl space-y-4" action="<%= action %>" method="post">
   <label class="block"><span class="label"><%= it.t('views.tasks.name') %></span>
-    <input class="field" type="text" name="data[name]" id="data_name" value="<%= it.task?.name ?? '' %>"></label>
+    <input class="field" type="text" name="data[name]" id="data_name" aria-label="<%= it.t('views.tasks.name') %>" value="<%= it.task?.name ?? '' %>"></label>
   <label class="block"><span class="label"><%= it.t('views.tasks.description') %></span>
-    <textarea class="field min-h-24" name="data[description]" id="data_description" rows="3"><%= it.task?.description ?? '' %></textarea></label>
+    <textarea class="field min-h-24" name="data[description]" id="data_description" aria-label="<%= it.t('views.tasks.description') %>" rows="3"><%= it.task?.description ?? '' %></textarea></label>
   <label class="block"><span class="label"><%= it.t('views.tasks.status') %></span>
-    <select class="field" name="data[statusId]" id="data_statusId">
+    <select class="field" name="data[statusId]" id="data_statusId" aria-label="<%= it.t('views.tasks.status') %>">
       <option value=""><%= it.t('views.tasks.selectStatus') %></option>
       <% it.statuses.forEach((s) => { %><option value="<%= s.id %>"<%= Number(it.task?.statusId) === s.id ? ' selected' : '' %>><%= s.name %></option><% }) %>
     </select></label>
   <label class="block"><span class="label"><%= it.t('views.tasks.executor') %></span>
-    <select class="field" name="data[executorId]" id="data_executorId">
+    <select class="field" name="data[executorId]" id="data_executorId" aria-label="<%= it.t('views.tasks.executor') %>">
       <option value=""></option>
       <% it.users.forEach((u) => { %><option value="<%= u.id %>"<%= Number(it.task?.executorId) === u.id ? ' selected' : '' %>><%= u.firstName %> <%= u.lastName %></option><% }) %>
     </select></label>
   <label class="block"><span class="label"><%= it.t('views.tasks.labels') %></span>
-    <select class="field min-h-24" name="data[labels]" id="data_labels" multiple>
+    <select class="field min-h-24" name="data[labels]" id="data_labels" aria-label="<%= it.t('views.tasks.labels') %>" multiple>
       <% it.labels.forEach((l) => { %><option value="<%= l.id %>"<%= (it.task?.labels && it.task.labels.some((x) => Number(x.id) === Number(l.id))) ? ' selected' : '' %>><%= l.name %></option><% }) %>
     </select></label>
   <button type="submit" class="btn btn-primary"><%= it.submitText %></button>

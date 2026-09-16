@@ -27,6 +27,11 @@ const __dirname = path.dirname(__filename);
 
 const fastifyPassport = new Authenticator();
 
+const flashView = (reply, template, data) => {
+  reply.locals = { ...(reply.locals || {}), flash: reply.flash() };
+  return reply.view(template, data);
+};
+
 export default async (app, options = {}) => {
   const mode = process.env.NODE_ENV || 'development';
   const knex = Knex(knexConfig[mode]);
@@ -130,22 +135,22 @@ export default async (app, options = {}) => {
     const userData = request.body.data || request.body;
     try {
       await User.query().insert(userData);
-      request.flash('success', 'User successfully registered');
-      return reply.redirect('/users');
+      request.flash('success', app.i18n.t('flash.users.create.success'));
+      return reply.redirect('/');
     } catch (err) {
-      request.flash('warning', 'Failed to register user');
+      request.flash('warning', app.i18n.t('flash.users.create.error'));
       const errors = err.data || {};
-      return reply.view('users/new', { user: userData, errors });
+      return flashView(reply, 'users/new', { user: userData, errors });
     }
   });
 
   app.get('/users/:id/edit', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     if (request.user.id !== Number(request.params.id)) {
-      request.flash('warning', 'You can only edit your own profile');
+      request.flash('warning', app.i18n.t('flash.userAccessError'));
       return reply.redirect('/users');
     }
     const user = await User.query().findById(request.params.id);
@@ -157,11 +162,11 @@ export default async (app, options = {}) => {
 
   app.patch('/users/:id', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     if (request.user.id !== Number(request.params.id)) {
-      request.flash('warning', 'You can only edit your own profile');
+      request.flash('warning', app.i18n.t('flash.userAccessError'));
       return reply.redirect('/users');
     }
     const userData = request.body.data || request.body;
@@ -179,8 +184,8 @@ export default async (app, options = {}) => {
       request.flash('success', app.i18n.t('flash.users.update.success'));
       return reply.redirect('/users');
     } catch (err) {
-      request.flash('warning', 'Failed to update user');
-      return reply.view('users/edit', {
+      request.flash('warning', app.i18n.t('flash.users.update.error'));
+      return flashView(reply, 'users/edit', {
         user: { id: Number(request.params.id), ...userData },
         errors: err.data || {},
       });
@@ -189,15 +194,16 @@ export default async (app, options = {}) => {
 
   app.delete('/users/:id', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     if (request.user.id !== Number(request.params.id)) {
-      request.flash('warning', 'You can only edit your own profile');
+      request.flash('warning', app.i18n.t('flash.userAccessError'));
       return reply.redirect('/users');
     }
     try {
       await User.query().deleteById(Number(request.params.id));
+      await request.logOut();
       request.flash('success', app.i18n.t('flash.users.delete.success'));
     } catch {
       request.flash('error', app.i18n.t('flash.users.delete.error'));
@@ -209,24 +215,27 @@ export default async (app, options = {}) => {
   app.get('/session/new', async (request, reply) => reply.view('session/new', {}));
 
   app.post('/session', async (request, reply) => {
-    return app.passport.authenticate('local', {
-      successRedirect: '/',
-      failureRedirect: '/session/new',
-      successFlash: 'You are logged in',
-      failureFlash: 'Invalid email or password',
+    return app.passport.authenticate('local', async (req, res, err, user) => {
+      if (err || !user) {
+        req.flash('error', app.i18n.t('flash.session.signInError'));
+        return res.redirect('/session/new');
+      }
+      await req.logIn(user);
+      req.flash('success', app.i18n.t('flash.session.signedIn'));
+      return res.redirect('/');
     })(request, reply);
   });
 
   app.delete('/session', async (request, reply) => {
-    request.logOut();
-    request.flash('success', 'You are logged out');
+    await request.logOut();
+    request.flash('success', app.i18n.t('flash.session.signedOut'));
     return reply.redirect('/');
   });
 
   // Statuses
   app.get('/statuses', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     const statuses = await TaskStatus.query();
@@ -235,7 +244,7 @@ export default async (app, options = {}) => {
 
   app.get('/statuses/new', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     return reply.view('statuses/new', { status: {} });
@@ -243,7 +252,7 @@ export default async (app, options = {}) => {
 
   app.post('/statuses', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     const statusData = request.body.data;
@@ -253,13 +262,13 @@ export default async (app, options = {}) => {
       return reply.redirect('/statuses');
     } catch (err) {
       request.flash('error', app.i18n.t('flash.statuses.create.error'));
-      return reply.view('statuses/new', { status: statusData, errors: err.data });
+      return flashView(reply, 'statuses/new', { status: statusData, errors: err.data });
     }
   });
 
   app.get('/statuses/:id/edit', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     const { id } = request.params;
@@ -269,7 +278,7 @@ export default async (app, options = {}) => {
 
   app.patch('/statuses/:id', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     const { id } = request.params;
@@ -281,13 +290,13 @@ export default async (app, options = {}) => {
       return reply.redirect('/statuses');
     } catch (err) {
       request.flash('error', app.i18n.t('flash.statuses.update.error'));
-      return reply.view('statuses/edit', { status: { id, ...statusData }, errors: err.data });
+      return flashView(reply, 'statuses/edit', { status: { id, ...statusData }, errors: err.data });
     }
   });
 
   app.delete('/statuses/:id', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     const { id } = request.params;
@@ -302,6 +311,11 @@ export default async (app, options = {}) => {
 
   // Tasks
   app.get('/tasks', async (request, reply) => {
+    if (!request.isAuthenticated()) {
+      request.flash('warning', app.i18n.t('flash.authError'));
+      return reply.redirect('/');
+    }
+
     const filter = request.query || {};
 
     const query = app.models.Task.query().withGraphFetched('[status, creator, executor, labels]');
@@ -334,7 +348,7 @@ export default async (app, options = {}) => {
 
   app.get('/tasks/new', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     const statuses = await app.models.TaskStatus.query();
@@ -345,7 +359,7 @@ export default async (app, options = {}) => {
 
   app.post('/tasks', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
 
@@ -371,19 +385,20 @@ export default async (app, options = {}) => {
       const statuses = await app.models.TaskStatus.query();
       const users = await app.models.User.query();
       const allLabels = await app.models.Label.query();
-      return reply.view('tasks/new', { task: taskData, statuses, users, labels: allLabels, errors: err.data });
+      request.flash('error', app.i18n.t('flash.tasks.create.error'));
+      return flashView(reply, 'tasks/new', { task: taskData, statuses, users, labels: allLabels, errors: err.data });
     }
   });
 
   app.get('/tasks/:id', async (request, reply) => {
     const { id } = request.params;
-    const task = await Task.query().findById(id).withGraphFetched('[status, creator, executor]');
+    const task = await Task.query().findById(id).withGraphFetched('[status, creator, executor, labels]');
     return reply.view('tasks/show', { task });
   });
 
   app.get('/tasks/:id/edit', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     const task = await app.models.Task.query().findById(request.params.id).withGraphFetched('labels');
@@ -395,7 +410,7 @@ export default async (app, options = {}) => {
 
   app.patch('/tasks/:id', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
 
@@ -421,13 +436,14 @@ export default async (app, options = {}) => {
       const statuses = await app.models.TaskStatus.query();
       const users = await app.models.User.query();
       const allLabels = await app.models.Label.query();
-      return reply.view('tasks/edit', { task: updateData, statuses, users, labels: allLabels, errors: err.data });
+      request.flash('error', app.i18n.t('flash.tasks.update.error'));
+      return flashView(reply, 'tasks/edit', { task: updateData, statuses, users, labels: allLabels, errors: err.data });
     }
   });
 
   app.delete('/tasks/:id', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     const { id } = request.params;
@@ -446,7 +462,7 @@ export default async (app, options = {}) => {
   // Labels
   app.get('/labels', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     const labels = await app.models.Label.query();
@@ -455,7 +471,7 @@ export default async (app, options = {}) => {
 
   app.get('/labels/new', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     return reply.view('labels/new', { label: {} });
@@ -463,7 +479,7 @@ export default async (app, options = {}) => {
 
   app.post('/labels', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     const labelData = request.body.data;
@@ -473,13 +489,13 @@ export default async (app, options = {}) => {
       return reply.redirect('/labels');
     } catch (err) {
       request.flash('error', app.i18n.t('flash.labels.create.error'));
-      return reply.view('labels/new', { label: labelData, errors: err.data });
+      return flashView(reply, 'labels/new', { label: labelData, errors: err.data });
     }
   });
 
   app.get('/labels/:id/edit', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     const label = await app.models.Label.query().findById(request.params.id);
@@ -488,7 +504,7 @@ export default async (app, options = {}) => {
 
   app.patch('/labels/:id', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     try {
@@ -497,13 +513,14 @@ export default async (app, options = {}) => {
       request.flash('success', app.i18n.t('flash.labels.update.success'));
       return reply.redirect('/labels');
     } catch (err) {
-      return reply.view('labels/edit', { label: { id: request.params.id, ...request.body.data }, errors: err.data });
+      request.flash('error', app.i18n.t('flash.labels.update.error'));
+      return flashView(reply, 'labels/edit', { label: { id: request.params.id, ...request.body.data }, errors: err.data });
     }
   });
 
   app.delete('/labels/:id', async (request, reply) => {
     if (!request.isAuthenticated()) {
-      request.flash('warning', 'Access denied. Please log in.');
+      request.flash('warning', app.i18n.t('flash.authError'));
       return reply.redirect('/session/new');
     }
     try {

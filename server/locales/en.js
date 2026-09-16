@@ -3,6 +3,13 @@ export default {
     lang: 'en',
     appName: 'Task Manager',
     flash: {
+      authError: 'Access denied! Please log in.',
+      userAccessError: 'You cannot edit or delete another user',
+      session: {
+        signedIn: 'You are logged in',
+        signedOut: 'You are logged out',
+        signInError: 'Invalid email or password',
+      },
       users: {
         create: {
           success: 'User successfully registered',
@@ -34,6 +41,9 @@ export default {
       },
     },
     views: {
+      session: {
+        new: { submit: 'Sign In' },
+      },
       layouts: {
         application: {
           users: 'Users',

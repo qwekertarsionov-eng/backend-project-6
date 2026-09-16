@@ -3,6 +3,13 @@ export default {
     lang: 'ru',
     appName: 'Менеджер задач',
     flash: {
+      authError: 'Доступ запрещён! Пожалуйста, авторизируйтесь.',
+      userAccessError: 'Вы не можете редактировать или удалять другого пользователя',
+      session: {
+        signedIn: 'Вы залогинены',
+        signedOut: 'Вы разлогинены',
+        signInError: 'Неправильный емейл или пароль',
+      },
       users: {
         create: {
           success: 'Пользователь успешно зарегистрирован',
@@ -20,20 +27,23 @@ export default {
       statuses: {
         create: { success: 'Статус успешно создан', error: 'Не удалось создать статус' },
         update: { success: 'Статус успешно изменён', error: 'Не удалось изменить статус' },
-        delete: { success: 'Статус успешно удалён', error: 'Нельзя удалить статус' },
+        delete: { success: 'Статус успешно удалён', error: 'Не удалось удалить статус' },
       },
       tasks: {
         create: { success: 'Задача успешно создана', error: 'Не удалось создать задачу' },
         update: { success: 'Задача успешно изменена', error: 'Не удалось изменить задачу' },
-        delete: { success: 'Задача успешно удалена', error: 'Удалять задачу может только её создатель' },
+        delete: { success: 'Задача успешно удалена', error: 'Задачу может удалить только её автор' },
       },
       labels: {
         create: { success: 'Метка успешно создана', error: 'Не удалось создать метку' },
         update: { success: 'Метка успешно изменена', error: 'Не удалось изменить метку' },
-        delete: { success: 'Метка успешно удалена', error: 'Нельзя удалить метку' },
+        delete: { success: 'Метка успешно удалена', error: 'Не удалось удалить метку' },
       },
     },
     views: {
+      session: {
+        new: { submit: 'Войти' },
+      },
       layouts: {
         application: {
           users: 'Пользователи',
@@ -63,11 +73,11 @@ export default {
           empty: 'Пользователей пока нет',
         },
         new: {
-          submit: 'Регистрация',
+          submit: 'Сохранить',
         },
         edit: {
           title: 'Изменение пользователя',
-          submit: 'Сохранить',
+          submit: 'Изменить',
         },
         delete: {
           submit: 'Удалить',
@@ -89,7 +99,7 @@ export default {
         },
         edit: {
           title: 'Изменение статуса',
-          submit: 'Сохранить',
+          submit: 'Изменить',
         },
         delete: {
           submit: 'Удалить',
@@ -110,7 +120,7 @@ export default {
           empty: 'Задач не найдено',
         },
         new: { title: 'Создание задачи', submit: 'Создать' },
-        edit: { title: 'Изменение задачи', submit: 'Сохранить' },
+        edit: { title: 'Изменение задачи', submit: 'Изменить' },
         show: { title: 'Просмотр задачи' },
         labels: 'Метки',
         selectStatus: 'Выберите статус',
@@ -142,7 +152,7 @@ export default {
         },
         edit: {
           title: 'Изменение метки',
-          submit: 'Сохранить',
+          submit: 'Изменить',
         },
         delete: {
           submit: 'Удалить',

@@ -6,13 +6,13 @@
 <% } %>
 
 <form class="card mb-5 grid grid-cols-3 gap-3" action="/tasks" method="get">
-  <select class="field" name="statusId"><option value=""><%= it.t('views.tasks.filter.status') %></option>
+  <select class="field" name="statusId" aria-label="<%= it.t('views.tasks.filter.status') %>"><option value=""><%= it.t('views.tasks.filter.status') %></option>
     <% it.statuses?.forEach((s) => { %><option value="<%= s.id %>"<%= String(s.id) === it.filter?.statusId ? ' selected' : '' %>><%= s.name %></option><% }) %></select>
-  <select class="field" name="executorId"><option value=""><%= it.t('views.tasks.filter.executor') %></option>
+  <select class="field" name="executorId" aria-label="<%= it.t('views.tasks.filter.executor') %>"><option value=""><%= it.t('views.tasks.filter.executor') %></option>
     <% it.users?.forEach((u) => { %><option value="<%= u.id %>"<%= String(u.id) === it.filter?.executorId ? ' selected' : '' %>><%= u.firstName %> <%= u.lastName %></option><% }) %></select>
-  <select class="field" name="labelId"><option value=""><%= it.t('views.tasks.filter.label') %></option>
+  <select class="field" name="labelId" aria-label="<%= it.t('views.tasks.filter.label') %>"><option value=""><%= it.t('views.tasks.filter.label') %></option>
     <% it.labels?.forEach((l) => { %><option value="<%= l.id %>"<%= String(l.id) === it.filter?.labelId ? ' selected' : '' %>><%= l.name %></option><% }) %></select>
-  <label class="col-span-3 text-sm"><input type="checkbox" name="isCreator" value="true"<%= it.filter?.isCreator === 'true' ? ' checked' : '' %>> <%= it.t('views.tasks.filter.isCreator') %></label>
+  <label class="col-span-3 text-sm"><input type="checkbox" name="isCreator" value="true" aria-label="<%= it.t('views.tasks.filter.isCreator') %>"<%= it.filter?.isCreator === 'true' ? ' checked' : '' %>> <%= it.t('views.tasks.filter.isCreator') %></label>
   <button type="submit" class="btn btn-primary w-fit"><%= it.t('views.tasks.filter.submit') %></button>
 </form>
 
@@ -30,9 +30,7 @@
       <td class="space-x-1">
         <% if (it.isAuthenticated) { %>
           <a class="btn btn-primary" href="<%= `/tasks/${t.id}/edit` %>"><%= it.t('views.tasks.edit.submit') %></a>
-          <% if (it.currentUser && Number(it.currentUser.id) === Number(t.creatorId)) { %>
-            <form class="inline" action="<%= `/tasks/${t.id}?_method=DELETE` %>" method="post"><input type="submit" value="<%= it.t('views.tasks.delete.submit') %>" class="btn btn-danger"></form>
-          <% } %>
+          <form class="inline" action="<%= `/tasks/${t.id}?_method=DELETE` %>" method="post"><input type="submit" value="<%= it.t('views.tasks.delete.submit') %>" class="btn btn-danger"></form>
         <% } %>
       </td>
     </tr>

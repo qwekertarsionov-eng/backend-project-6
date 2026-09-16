@@ -10,19 +10,19 @@
   <form class="space-y-3" action="<%= `/users/${it.user.id}?_method=PATCH` %>" method="post">
     <label class="block">
       <span class="label"><%= it.t('views.users.firstName') %></span>
-      <input class="field" name="data[firstName]" id="data_firstName" type="text" value="<%= it.user?.firstName ?? '' %>">
+      <input class="field" name="data[firstName]" id="data_firstName" type="text" aria-label="<%= it.t('views.users.firstName') %>" value="<%= it.user?.firstName ?? '' %>">
     </label>
     <label class="block">
       <span class="label"><%= it.t('views.users.lastName') %></span>
-      <input class="field" name="data[lastName]" id="data_lastName" type="text" value="<%= it.user?.lastName ?? '' %>">
+      <input class="field" name="data[lastName]" id="data_lastName" type="text" aria-label="<%= it.t('views.users.lastName') %>" value="<%= it.user?.lastName ?? '' %>">
     </label>
     <label class="block">
       <span class="label"><%= it.t('views.users.email') %></span>
-      <input class="field" name="data[email]" id="data_email" type="email" value="<%= it.user?.email ?? '' %>">
+      <input class="field" name="data[email]" id="data_email" type="email" aria-label="<%= it.t('views.users.email') %>" value="<%= it.user?.email ?? '' %>">
     </label>
     <label class="block">
       <span class="label"><%= it.t('views.users.password') %></span>
-      <input class="field" name="data[password]" id="data_password" type="password">
+      <input class="field" name="data[password]" id="data_password" type="password" aria-label="<%= it.t('views.users.password') %>">
     </label>
     <button type="submit" class="btn btn-primary"><%= it.t('views.users.edit.submit') %></button>
   </form>

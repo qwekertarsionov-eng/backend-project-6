@@ -25,7 +25,7 @@ describe('users', () => {
     const res = await registerUser(app);
 
     expect(res.statusCode).toBe(302);
-    expect(res.headers.location).toBe('/users');
+    expect(res.headers.location).toBe('/');
 
     const list = await app.inject({ method: 'GET', url: '/users' });
     expect(list.statusCode).toBe(200);

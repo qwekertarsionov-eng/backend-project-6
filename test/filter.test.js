@@ -54,25 +54,26 @@ describe('filter tasks', () => {
     });
     await app.knex('tasks_labels').insert({ task_id: taskAlfaId, label_id: labelId });
 
-    const byStatus = await app.inject({ method: 'GET', url: `/tasks?statusId=${newStatusId}` });
+    const cookie = await login(app, { email: 'alfa@example.com', password: 'secret' });
+
+    const byStatus = await app.inject({ method: 'GET', url: `/tasks?statusId=${newStatusId}`, ...authed(cookie) });
     expect(byStatus.statusCode).toBe(200);
     expect(byStatus.payload).toContain('Task Alfa');
     expect(byStatus.payload).toContain('Task Gamma');
     expect(byStatus.payload).not.toContain('Task Beta');
 
-    const byExecutor = await app.inject({ method: 'GET', url: `/tasks?executorId=${betaId}` });
+    const byExecutor = await app.inject({ method: 'GET', url: `/tasks?executorId=${betaId}`, ...authed(cookie) });
     expect(byExecutor.statusCode).toBe(200);
     expect(byExecutor.payload).toContain('Task Alfa');
     expect(byExecutor.payload).toContain('Task Gamma');
     expect(byExecutor.payload).not.toContain('Task Beta');
 
-    const byLabel = await app.inject({ method: 'GET', url: `/tasks?labelId=${labelId}` });
+    const byLabel = await app.inject({ method: 'GET', url: `/tasks?labelId=${labelId}`, ...authed(cookie) });
     expect(byLabel.statusCode).toBe(200);
     expect(byLabel.payload).toContain('Task Alfa');
     expect(byLabel.payload).not.toContain('Task Beta');
     expect(byLabel.payload).not.toContain('Task Gamma');
 
-    const cookie = await login(app, { email: 'alfa@example.com', password: 'secret' });
     const byCreator = await app.inject({
       method: 'GET',
       url: '/tasks?isCreator=true',
@@ -108,7 +109,11 @@ describe('filter tasks', () => {
     });
     await app.knex('tasks_labels').insert({ task_id: taskId, label_id: labelId });
 
-    const res = await app.inject({ method: 'GET', url: '/tasks' });
+    const res = await app.inject({
+      method: 'GET',
+      url: '/tasks',
+      ...authed(await login(app, { email: 'alfa@example.com', password: 'secret' })),
+    });
     expect(res.statusCode).toBe(200);
     expect(res.payload).toContain('Task Alpha');
     expect(res.payload).toContain('Task Beta');
