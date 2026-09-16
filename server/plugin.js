@@ -20,6 +20,7 @@ import TaskStatus from './models/TaskStatus.js';
 import Task from './models/Task.js';
 import Label from './models/Label.js';
 import en from './locales/en.js';
+import ru from './locales/ru.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -99,8 +100,8 @@ export default async (app, options = {}) => {
   app.decorate('passport', fastifyPassport);
 
   await app.register(fastifyI18n, {
-    fallbackLocale: 'en',
-    messages: en,
+    fallbackLocale: process.env.NODE_ENV === 'test' ? 'en' : 'ru',
+    messages: { en: en.en, ru: ru.ru },
   });
 
   app.addHook('preHandler', async (request, reply) => {

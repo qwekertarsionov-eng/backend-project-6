@@ -22,21 +22,22 @@ npm run migrate   # knex migrate:latest (разворачивает server/migra
 ## Ключевые механики (не дадут ошибиться)
 
 - **`_method`**: формы в браузере шлют только GET/POST. PATCH/DELETE — это `POST <url>?_method=PATCH|DELETE`; подмена HTTP-метода выполняется глобально через `rewriteUrl` в `server/app.js`. НЕ читай `_method` из тела (прокси-роутов и веток `body._method` больше нет).
-- **Поля форм**: строго `name="data[firstName]"` / `id="data_firstName"` (паdeep-парсинг `@fastify/formbody` + qs → `request.body.data`). Стратегия passport-local использует `data[email]`/`data[password]`. Автотесты ищут `role="alert"` на flash-элементах — не убирай.
+- **Поля форм**: строго `name="data[firstName]"` / `id="data_firstName"` — `@fastify/formbody` + `qs` раскладывают такие имена в `request.body.data` (в части роутов есть фолбэк `request.body.data || request.body`). Стратегия passport-local использует `data[email]`/`data[password]`. Автотесты ищут `role="alert"` на flash-элементах — не убирай.
 - **Flash**: `@fastify/flash` — `request.flash(type, msg)` пишет, `reply.flash()` читает+очищает (в `preHandler` прокидывается в шаблоны как `it.flash`).
 - **Права доступа**: `request.isAuthenticated()` проверяется в каждом роуте вручную. Свой профиль правит/удаляет только сам пользователь; задачу удаляет только создатель; пользователя/статус/метку, связанную с задачей, удалить нельзя (FK RESTRICT → catch + flash-ошибка).
 - **Пароли**: sha256-hex в колонке `passwordDigest`, считается в `User.$beforeInsert` (только при insert!). При PATCH пользователя хэш пересчитывается в роуте.
 - **Модели**: везде `columnNameMappers = snakeCaseMappers()` (JS camelCase ↔ DB snake_case). В `Task` relationMapping многие-ко-многим через таблицу `tasks_labels` (имена колонок в join указывать snake_case).
 - **Стили**: `src/styles.css` → `@import "tailwindcss"; @source "../views";`. `@source` критично: Tailwind собирает только классы из шаблонов eta (`server/views/*.eta`). Без правки шаблонов не пересобирай css — сборка «зелёная», но страница без стилей. `dist/` не коммитить.
-- **i18n**: `server/locales/en.js`, язык по умолчанию английский. В шаблонах `it.t('ключ')`.
+- **i18n**: `server/locales/en.js` + `ru.js` (default-экспорты вида `{ en: {...} }`/`{ ru: {...} }`). Локаль по умолчанию — русская (`ru`); английская (`en`) используется в тестах при `NODE_ENV=test`. Выбор задаётся в `server/plugin.js`: `fallbackLocale: process.env.NODE_ENV === 'test' ? 'en' : 'ru'`, `messages: { en: en.en, ru: ru.ru }` (без двойной вложенности — fastify-i18n ждёт ресурсы «как есть»). В реальном браузере язык может быть выбран из заголовка `accept-language`. Шаблоны используют `it.t('ключ')`. ЕСЛИ в будущем понадобится «полностью русский вариант» (включая русский в тестах), достаточно править русские строки тестов и ключи в `server/locales/*.js` — вёрстка уже на `it.t()`.
 
 ## Тесты
 
 - `test/` — vitest + `buildApp().inject()`. Хелпер включает `PRAGMA foreign_keys = ON` на in-memory sqlite и накатывает миграции через **тот же** `app.knex`, которым пользуется приложение (для `:memory:` база живёт в одном соединении). Новый тест-файл — свой `buildApp()` в `beforeEach`, `app.close()` в `afterEach`.
 - Сессии в тестах: логин через `POST /session` (form `data[email]`/`data[password]`), cookie из `headers['set-cookie']` передаётся как заголовок `cookie` в последующие inject.
+- `test/helpers.js` — готовые хелперы: `buildAppTest` (миграции + PRAGMA), `registerUser`, `login` (возвращает cookie), `authed`, `authedForm`. Используй их в новых тестах вместо ручного `inject`.
 
 ## Прочее
 
-- `.github/workflows/hexlet-check.yml` — автогенерируемый, НЕ удалять и не редактировать.
+- `.github/workflows/*` (hexlet-check.yml и др.) — автогенерируемые, на GitHub их ставит сам Хекслет; НЕ создавать, НЕ редактировать, НЕ удалять. Локально их может не быть.
 - `database.sqlite` в .gitignore; dev-модификации БД коммитить нельзя.
 - `make test` обязан сначала собрать css (`dist/`) — тест `test/assets.test.js` проверяет `/assets/main.css` на наличии tailwind-классов.

@@ -1,43 +1,37 @@
 <% layout("../layouts/application", { header: it.t("views.layouts.application.users") }) %>
-<h1 class="my-4 text-2xl font-bold"><%= it.t('views.layouts.application.users') %></h1>
-<div class="overflow-x-auto rounded-lg bg-white shadow-sm">
-  <table class="min-w-full">
-    <thead>
-      <tr class="border-b border-gray-200 bg-gray-100">
-        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"><%= it.t('views.users.id') %></th>
-        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"><%= it.t('views.users.firstName') %></th>
-        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"><%= it.t('views.users.lastName') %></th>
-        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"><%= it.t('views.users.email') %></th>
-        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"><%= it.t('views.users.createdAt') %></th>
-        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"><%= it.t('views.users.actions') %></th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-200">
-      <% if (it.users && it.users.length) { %>
-        <% it.users.forEach((user) => { %>
-          <tr class="hover:bg-gray-50">
-            <td class="px-4 py-3 text-sm text-gray-900"><%= user.id %></td>
-            <td class="px-4 py-3 text-sm text-gray-900"><%= user.firstName %></td>
-            <td class="px-4 py-3 text-sm text-gray-900"><%= user.lastName %></td>
-            <td class="px-4 py-3 text-sm text-gray-900"><%= user.email %></td>
-            <td class="px-4 py-3 text-sm text-gray-600"><%= new Date(user.createdAt).toLocaleString() %></td>
-            <td class="px-4 py-3">
-              <% if (it.currentUser && Number(it.currentUser.id) === Number(user.id)) { %>
-                <div class="flex gap-2">
-                  <a href="<%= `/users/${user.id}/edit` %>" class="rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700"><%= it.t('views.users.edit.submit') %></a>
-                  <form action="<%= `/users/${user.id}?_method=DELETE` %>" method="post" class="inline">
-                    <input type="submit" value="<%= it.t('views.users.delete.submit') %>" class="rounded bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700">
-                  </form>
-                </div>
-              <% } %>
-            </td>
-          </tr>
-        <% }) %>
-      <% } else { %>
+<h1 class="page-title"><%= it.t('views.layouts.application.users') %></h1>
+<table class="table">
+  <thead>
+    <tr>
+      <th><%= it.t('views.users.id') %></th>
+      <th><%= it.t('views.users.fullName') %></th>
+      <th><%= it.t('views.users.email') %></th>
+      <th><%= it.t('views.users.createdAt') %></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (it.users && it.users.length) { %>
+      <% it.users.forEach((user) => { %>
         <tr>
-          <td colspan="6" class="px-4 py-4 text-center text-sm text-gray-500"><%= it.t('views.users.index.empty') %></td>
+          <td><%= user.id %></td>
+          <td><%= user.firstName %> <%= user.lastName %></td>
+          <td><%= user.email %></td>
+          <td><%= new Date(user.createdAt).toLocaleString() %></td>
+          <td class="space-x-1">
+            <% if (it.currentUser && Number(it.currentUser.id) === Number(user.id)) { %>
+              <a class="btn btn-primary" href="<%= `/users/${user.id}/edit` %>"><%= it.t('views.users.edit.submit') %></a>
+              <form action="<%= `/users/${user.id}?_method=DELETE` %>" method="post" style="display:inline">
+                <input type="submit" value="<%= it.t('views.users.delete.submit') %>" class="btn btn-danger">
+              </form>
+            <% } %>
+          </td>
         </tr>
-      <% } %>
-    </tbody>
-  </table>
-</div>
+      <% }) %>
+    <% } else { %>
+      <tr>
+        <td colspan="5"><%= it.t('views.users.index.empty') %></td>
+      </tr>
+    <% } %>
+  </tbody>
+</table>

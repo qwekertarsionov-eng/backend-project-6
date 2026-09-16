@@ -1,66 +1,43 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= it.t('lang') %>">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="<%= it.assetPath('main.css') %>" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title><%= it.header ?? it.t('appName') %></title>
+  <link rel="stylesheet" href="<%= it.assetPath('main.css') %>">
 </head>
-<body class="flex min-h-screen flex-col bg-gray-50 text-gray-900">
-  <nav class="border-b border-gray-200 bg-white shadow-sm">
-    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-      <div class="flex items-center gap-6">
-        <a href="/" class="text-lg font-bold text-gray-900"><%= it.t('appName') %></a>
-        <a href="/users" class="text-sm font-medium text-gray-700 hover:text-gray-900"><%= it.t('views.layouts.application.users') %></a>
-        <a href="/tasks" class="text-sm font-medium text-gray-700 hover:text-gray-900"><%= it.t('views.layouts.application.tasks') %></a>
-        <% if (it.isAuthenticated) { %>
-          <a href="/statuses" class="text-sm font-medium text-gray-700 hover:text-gray-900"><%= it.t('views.layouts.application.statuses') %></a>
-          <a href="/labels" class="text-sm font-medium text-gray-700 hover:text-gray-900"><%= it.t('views.layouts.application.labels') %></a>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+  <header class="bg-white">
+    <nav class="mx-auto flex h-14 max-w-5xl items-center gap-5 px-4 text-sm">
+      <a href="/" class="font-bold"><%= it.t('appName') %></a>
+      <a href="/users"><%= it.t('views.layouts.application.users') %></a>
+      <% if (it.isAuthenticated) { %>
+        <a href="/statuses"><%= it.t('views.layouts.application.statuses') %></a>
+        <a href="/labels"><%= it.t('views.layouts.application.labels') %></a>
+        <a href="/tasks"><%= it.t('views.layouts.application.tasks') %></a>
+        <span class="ml-auto"></span>
+        <form action="/session?_method=DELETE" method="post">
+          <button type="submit" class="cursor-pointer text-slate-700 hover:text-slate-900"><%= it.t('views.layouts.application.logout') %></button>
+        </form>
+      <% } else { %>
+        <span class="ml-auto"></span>
+        <a href="/session/new"><%= it.t('views.layouts.application.login') %></a>
+        <a href="/users/new"><%= it.t('views.layouts.application.register') %></a>
+      <% } %>
+    </nav>
+  </header>
+  <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+    <% if (it.flash) { %>
+      <% ['success', 'error', 'warning', 'info'].forEach((type) => { %>
+        <% if (it.flash[type] && it.flash[type].length) { %>
+          <% it.flash[type].forEach((msg) => { %>
+            <div role="alert" class="mb-4 rounded border border-blue-300 bg-blue-50 px-3 py-2 text-blue-700"><%= msg %></div>
+          <% }) %>
         <% } %>
-      </div>
-      <div class="flex items-center gap-3">
-        <% if (it.isAuthenticated) { %>
-          <% if (it.currentUser) { %>
-            <span class="text-sm text-gray-600"><%= it.currentUser.firstName %> <%= it.currentUser.lastName %></span>
-          <% } %>
-          <form action="/session?_method=DELETE" method="post" class="inline">
-            <button type="submit" class="rounded border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100"><%= it.t('views.layouts.application.logout') %></button>
-          </form>
-        <% } else { %>
-          <a href="/session/new" class="rounded px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100"><%= it.t('views.layouts.application.login') %></a>
-          <a href="/users/new" class="rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700"><%= it.t('views.layouts.application.register') %></a>
-        <% } %>
-      </div>
-    </div>
-  </nav>
-
-  <% if (it.flash) { %>
-    <% if (it.flash.success && it.flash.success.length) { %>
-      <% it.flash.success.forEach((msg) => { %>
-        <div role="alert" class="mx-auto mt-4 w-full max-w-7xl rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"><%= msg %></div>
       <% }) %>
     <% } %>
-    <% if (it.flash.error && it.flash.error.length) { %>
-      <% it.flash.error.forEach((msg) => { %>
-        <div role="alert" class="mx-auto mt-4 w-full max-w-7xl rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"><%= msg %></div>
-      <% }) %>
-    <% } %>
-    <% if (it.flash.warning && it.flash.warning.length) { %>
-      <% it.flash.warning.forEach((msg) => { %>
-        <div role="alert" class="mx-auto mt-4 w-full max-w-7xl rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"><%= msg %></div>
-      <% }) %>
-    <% } %>
-    <% if (it.flash.info && it.flash.info.length) { %>
-      <% it.flash.info.forEach((msg) => { %>
-        <div role="alert" class="mx-auto mt-4 w-full max-w-7xl rounded border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800"><%= msg %></div>
-      <% }) %>
-    <% } %>
-  <% } %>
-
-  <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-8">
     <%~ it.body %>
   </main>
-
-  <footer class="mt-auto border-t border-gray-200 bg-white py-4 text-center text-sm text-gray-500">© 2026 Hexlet Task Manager</footer>
+  <footer class="bg-slate-900 py-3 text-center text-xs text-white">© Hexlet Ltd, 2021</footer>
 </body>
 </html>

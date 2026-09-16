@@ -1,5 +1,6 @@
 export default {
   en: {
+    lang: 'en',
     appName: 'Task Manager',
     flash: {
       users: {
@@ -47,9 +48,11 @@ export default {
       index: {
         hello: 'Hello from Hexlet!',
         description: 'This is a simple task manager built with Fastify and Eta.',
+        more: 'Learn more',
       },
       users: {
         id: 'ID',
+        fullName: 'Full Name',
         email: 'Email',
         firstName: 'First Name',
         lastName: 'Last Name',

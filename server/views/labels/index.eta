@@ -1,38 +1,34 @@
 <% layout("../layouts/application", { header: it.t("views.labels.index.title") }) %>
-<h1 class="my-4 text-2xl font-bold"><%= it.t('views.labels.index.title') %></h1>
-<a href="/labels/new" class="mb-3 inline-block rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"><%= it.t('views.labels.index.create') %></a>
-<div class="overflow-x-auto rounded-lg bg-white shadow-sm">
-  <table class="min-w-full">
-    <thead>
-      <tr class="border-b border-gray-200 bg-gray-100">
-        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"><%= it.t('views.labels.id') %></th>
-        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"><%= it.t('views.labels.name') %></th>
-        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"><%= it.t('views.labels.createdAt') %></th>
-        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"><%= it.t('views.labels.actions') %></th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-200">
-      <% if (it.labels && it.labels.length) { %>
-        <% it.labels.forEach((label) => { %>
-          <tr class="hover:bg-gray-50">
-            <td class="px-4 py-3 text-sm text-gray-900"><%= label.id %></td>
-            <td class="px-4 py-3 text-sm text-gray-900"><%= label.name %></td>
-            <td class="px-4 py-3 text-sm text-gray-600"><%= new Date(label.createdAt).toLocaleString() %></td>
-            <td class="px-4 py-3">
-              <div class="flex gap-2">
-                <a href="<%= `/labels/${label.id}/edit` %>" class="rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700"><%= it.t('views.labels.edit.submit') %></a>
-                <form action="<%= `/labels/${label.id}?_method=DELETE` %>" method="post" class="inline">
-                  <input type="submit" value="<%= it.t('views.labels.delete.submit') %>" class="rounded bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700">
-                </form>
-              </div>
-            </td>
-          </tr>
-        <% }) %>
-      <% } else { %>
+<h1 class="page-title"><%= it.t('views.labels.index.title') %></h1>
+<a class="btn btn-primary mb-5" href="/labels/new"><%= it.t('views.labels.index.create') %></a>
+<table class="table">
+  <thead>
+    <tr>
+      <th><%= it.t('views.labels.id') %></th>
+      <th><%= it.t('views.labels.name') %></th>
+      <th><%= it.t('views.labels.createdAt') %></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (it.labels && it.labels.length) { %>
+      <% it.labels.forEach((l) => { %>
         <tr>
-          <td colspan="4" class="px-4 py-4 text-center text-sm text-gray-500"><%= it.t('views.labels.index.empty') %></td>
+          <td><%= l.id %></td>
+          <td><%= l.name %></td>
+          <td><%= new Date(l.createdAt).toLocaleString() %></td>
+          <td class="space-x-1">
+            <a class="btn btn-primary" href="<%= `/labels/${l.id}/edit` %>"><%= it.t('views.labels.edit.submit') %></a>
+            <form action="<%= `/labels/${l.id}?_method=DELETE` %>" method="post" style="display:inline">
+              <input type="submit" value="<%= it.t('views.labels.delete.submit') %>" class="btn btn-danger">
+            </form>
+          </td>
         </tr>
-      <% } %>
-    </tbody>
-  </table>
-</div>
+      <% }) %>
+    <% } else { %>
+      <tr>
+        <td colspan="4"><%= it.t('views.labels.index.empty') %></td>
+      </tr>
+    <% } %>
+  </tbody>
+</table>
