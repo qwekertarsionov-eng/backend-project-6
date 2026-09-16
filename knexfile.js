@@ -35,7 +35,7 @@ export default {
   },
   production: {
     client: 'postgresql',
-    connection: process.env.DATABASE_URL, // Render автоматически передаст эту переменную
+    connection: process.env.DATABASE_URL || 'postgres://postgres:password@db:5432/postgres', // Render передаст DATABASE_URL; фолбэк для CI-харнесса Hexlet
     pool: {
       min: 2,
       max: 10,

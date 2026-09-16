@@ -17,3 +17,9 @@ lint:
 
 test: build
 	npm test
+
+start:
+	npm start
+
+db-migrate:
+	NODE_ENV=production npx knex migrate:latest

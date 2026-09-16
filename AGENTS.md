@@ -10,6 +10,7 @@ make lint    # npx eslint .
 make test    # vite build + vitest run (31 тест)
 make dev     # node --watch server/bin/server.js
 make start   # node server/bin/server.js
+make db-migrate   # миграции прод-конфига (Postgres: NODE_ENV=production + DATABASE_URL)
 npm run migrate   # knex migrate:latest (разворачивает server/migrations в dev-БД)
 ```
 
